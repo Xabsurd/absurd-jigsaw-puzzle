@@ -1,21 +1,9 @@
 import {
   Application,
-  autoDetectRenderer,
   Container,
-  ContainerChild,
-  ExtractOptions,
-  GlTextureSystem,
-  GpuTextureSystem,
-  Graphics,
-  GraphicsPath,
-  Polygon,
-  RenderTexture,
   Sprite,
   Texture,
-  TextureSource,
-  BLEND_MODES,
   Text as PixiText,
-  FederatedPointerEvent,
   TextStyle,
 } from "pixi.js";
 import "./style.css";
@@ -66,6 +54,9 @@ for (let x = 0; x < columns; x++) {
     userControl.handle(sprite);
   }
 }
+userControl.on('pointerup',(target)=>{
+  console.log(target);
+})
 
 const style = new TextStyle({
   fontFamily: "Arial",
