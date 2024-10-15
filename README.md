@@ -6,6 +6,19 @@
 1. 可以支持任意数量的拼图块
 2. 可自定义优化级别，以适配不同性能的机器
 3. 可自定义操作逻辑`完善中`
+## 启动
+#### 安装依赖
+```
+npm install
+```
+#### 启动项目
+```
+npm run dev
+```
+#### 构建
+```
+npm run build
+```
 ## 引用项目
 - [pixi.js](https://github.com/pixijs/pixijs)
 - [Draradech/jigsaw](https://github.com/Draradech/jigsaw)
