@@ -8,13 +8,12 @@ import {
   Point,
   Polygon,
   RenderTexture,
-  SCALE_MODES,
   Sprite,
-  Texture,
-} from "pixi.js";
-import { svgPathProperties } from "svg-path-properties";
+} from 'pixi.js';
+import { svgPathProperties } from 'svg-path-properties';
 import { OutlineFilter } from 'pixi-filters/outline';
-import PuzzleTile from "./PuzzleTile";
+import PuzzleTile from './puzzleTile';
+import HitArea from './hitArea';
 export function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new Image();
@@ -23,12 +22,9 @@ export function loadImage(src: string) {
     img.src = src;
   });
 }
-export type OptimizationT = "none" | "antialias" | "reRender";
+export type OptimizationT = 'none' | 'antialias' | 'reRender';
 export default class PieceTools {
-  constructor(
-    public app: Application,
-    public optimization: OptimizationT = "none"
-  ) {}
+  constructor(public app: Application, public optimization: OptimizationT = 'none') {}
   getTextureByPath(target: Sprite, path: string) {
     const graphicsPath = new GraphicsPath(path);
     const mask = new Graphics();
@@ -38,7 +34,7 @@ export default class PieceTools {
     target.mask = mask;
     const texture = this.app.renderer.generateTexture({
       target: target,
-      frame: graphicsPath.bounds.rectangle,
+      frame: graphicsPath.bounds.rectangle
     });
     return { texture, parentBound: graphicsPath.bounds };
   }
@@ -58,13 +54,13 @@ export default class PieceTools {
       color: 0x8bc5ff,
       alpha: 0.5,
       thickness: 2,
-      knockout: true,
+      knockout: true
     });
-    border_g.filters =outlineFilter;
+    border_g.filters = outlineFilter;
     const texture: RenderTexture | null = RenderTexture.create({
       width: graphicsPath.bounds.width + offset * 2,
       height: graphicsPath.bounds.height + offset * 2,
-      antialias: this.optimization !== "none" ? true : false,
+      antialias: this.optimization !== 'none' ? true : false
     });
     const render_container = new Container();
     render_container.x = -graphicsPath.bounds.x + offset;
@@ -73,12 +69,14 @@ export default class PieceTools {
     render_container.addChild(border_g);
     this.app.renderer.render({ target: texture, container: render_container });
     let sprite;
-    if (this.optimization === "reRender") {
+    if (this.optimization === 'reRender') {
       const image = await this.app.renderer.extract.image(texture);
       sprite = PuzzleTile.from(image);
     } else {
       sprite = PuzzleTile.from(texture);
     }
+    sprite.x = graphicsPath.bounds.x - offset;
+    sprite.y = graphicsPath.bounds.y - offset;
     const container = new Container();
     container.addChild(sprite);
     const svg = new svgPathProperties(path);
@@ -86,18 +84,17 @@ export default class PieceTools {
     const points = [];
     for (let i = 0; i < svg.getTotalLength(); i += 10) {
       const point = svg.getPointAtLength(i);
-      points.push(
-        new Point(point.x + render_container.x, point.y + render_container.y)
-      );
+      points.push(new Point(point.x, point.y));
     }
-    container.hitArea = new Polygon(points);
+    container.hitArea = new HitArea([new Polygon(points)]);
+
     const bounds = new Bounds(
       graphicsPath.bounds.x - offset,
       graphicsPath.bounds.y - offset,
       texture.width + offset * 2,
       texture.height + offset * 2
     );
-    if (this.optimization === "reRender") {
+    if (this.optimization === 'reRender') {
       texture.destroy(true);
     }
     render_container.removeChild(target);
@@ -115,9 +112,7 @@ export class IHitGraphics implements IHitArea {
   constructor(public target: Graphics) {}
   contains(x: number, y: number): boolean {
     // throw new Error("Method not implemented.");
-    if (
-      this.target.bounds.containsPoint(x - this.target.x, y - this.target.y)
-    ) {
+    if (this.target.bounds.containsPoint(x - this.target.x, y - this.target.y)) {
       return this.target.hitArea?.contains(x, y) || false;
     } else {
       return false;

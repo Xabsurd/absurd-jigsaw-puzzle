@@ -1,23 +1,44 @@
 import { Container } from 'pixi.js';
-import PuzzleTile from './PuzzleTile';
-
+import PuzzleTile from './puzzleTile';
+import HitArea from './hitArea';
 export default class Validate {
   constructor(public puzzleTiles: Map<string, PuzzleTile>, public redundancy = 10) {}
 
   public validate(target: Container) {
     for (const tile of target.children as PuzzleTile[]) {
-      const id = tile.column + '-' + tile.row;
       const left_id = tile.column - 1 + '-' + tile.row;
       const right_id = tile.column + 1 + '-' + tile.row;
       const up_id = tile.column + '-' + (tile.row - 1);
       const down_id = tile.column + '-' + (tile.row + 1);
-
       const left_tile = this.puzzleTiles.get(left_id);
       const right_tile = this.puzzleTiles.get(right_id);
       const up_tile = this.puzzleTiles.get(up_id);
       const down_tile = this.puzzleTiles.get(down_id);
-      if (left_tile) {
-        this.overlapping(tile, left_tile);
+      if (left_tile && tile.parent.uid !== left_tile.parent.uid) {
+        if (this.overlapping(tile, left_tile)) {
+          this.merge(tile, left_tile);
+          return;
+        }
+      }
+
+      if (right_tile && tile.parent.uid !== right_tile.parent.uid) {
+        if (this.overlapping(tile, right_tile)) {
+          this.merge(tile, right_tile);
+          return;
+        }
+      }
+      if (up_tile && tile.parent.uid !== up_tile.parent.uid) {
+        if (this.overlapping(tile, up_tile)) {
+          this.merge(tile, up_tile);
+          return;
+        }
+      }
+
+      if (down_tile && tile.parent.uid !== down_tile.parent.uid) {
+        if (this.overlapping(tile, down_tile)) {
+          this.merge(tile, down_tile);
+          return;
+        }
       }
     }
   }
@@ -34,5 +55,16 @@ export default class Validate {
     } else {
       return false;
     }
+  }
+  public merge(tile1: PuzzleTile, tile2: PuzzleTile) {
+    const parent1 = tile1.parent;
+    const parent2 = tile2.parent;
+    for (const children of parent1.children as PuzzleTile[]) {
+      const new_children = children.clone();
+      parent2.addChild(new_children);
+      this.puzzleTiles.set(new_children.column + '-' + new_children.row, new_children);
+    }
+    (parent2.hitArea as HitArea).merge(parent1.hitArea as HitArea);
+    parent1.destroy();
   }
 }
