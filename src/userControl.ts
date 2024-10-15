@@ -23,7 +23,7 @@ export default class UserControl {
     UserControlEventName,
     UserControlEvent[UserControlEventName]
   >();
-  constructor(public app: Application, public mainContainer: Container) {
+  constructor(public app: Application, public mainContainer: Container,public baseSprite:Container) {
     app.stage.hitArea = app.screen;
     app.stage.eventMode = "static";
     app.stage.on("pointermove", this.pointermove.bind(this));
@@ -107,5 +107,16 @@ export default class UserControl {
     this.mainContainer.scale.y = scale;
     this.mainContainer.x = this.mainContainer.x - opposeX * offserScale;
     this.mainContainer.y = this.mainContainer.y - opposeY * offserScale;
+  }
+  setCenter(){
+    const widthProp =   this.app.screen.width/this.baseSprite.width;
+    const heightProp =  this.app.screen.height/this.baseSprite.height;
+    const scale = Math.min(widthProp, heightProp)/2;
+    this.mainContainer.scale.x = scale;
+    this.mainContainer.scale.y = scale;
+    this.minScale = scale/2;
+    this.mainContainer.x=(this.app.screen.width-this.baseSprite.width*scale)/2;
+    this.mainContainer.y=(this.app.screen.height-this.baseSprite.height*scale)/2;
+    console.log(this.app.screen.width,this.baseSprite.height*scale);
   }
 }
