@@ -4,7 +4,7 @@ import { GeneratePath, TileTool } from './svgTools';
 import PieceTools, { loadImage } from './pieceTools';
 import UserControl from './userControl';
 import Interfaces from './interfaces';
-import PuzzleTile from './puzzleTile';
+import PuzzleTile from './puzzleTilex';
 import Validate from './validate';
 // const columns = 50,
 // const baseImageSrc = './95494859_p0.jpg';

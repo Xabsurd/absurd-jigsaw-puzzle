@@ -12,7 +12,7 @@ import {
 } from 'pixi.js';
 import { svgPathProperties } from 'svg-path-properties';
 import { OutlineFilter } from 'pixi-filters/outline';
-import PuzzleTile from './puzzleTile';
+import PuzzleTile from './puzzleTilex';
 import HitArea from './hitArea';
 export function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
