@@ -8,7 +8,7 @@
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.blue.min.css"
     />
     <title>拼图游戏</title>
-    <script type="module" crossorigin src="./assets/index-t3Ed5o1s.js"></script>
+    <script type="module" crossorigin src="./assets/index-Cx6mrvCa.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-DWtyoGk4.css">
   </head>
   <body>
@@ -48,11 +48,11 @@
           <fieldset>
             <legend>优化方式</legend>
             <input id="none" type="radio" name="optimization" checked />
-            <label for="none">无</label>
+            <label for="none" data-tooltip="没有优化,最推荐">无</label>
             <input id="antialias" type="radio" name="optimization" />
-            <label for="antialias">抗锯齿</label>
+            <label for="antialias" data-tooltip="添加抗锯齿.效果不明显,但会占用大量显存">抗锯齿</label>
             <input id="reRender" type="radio" name="optimization" />
-            <label for="reRender">重渲染</label>
+            <label for="reRender" data-tooltip="添加抗锯齿.将碎片转换成图片再重新渲染,显存占用最小,但载入速度最慢">重渲染</label>
           </fieldset>
         </fieldset>
         <button type="button" id="upload" style="width: 100%">选择图片</button>
