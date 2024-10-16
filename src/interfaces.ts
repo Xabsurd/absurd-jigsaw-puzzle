@@ -1,52 +1,93 @@
-import { Application, TextStyle, Text as PixiText } from "pixi.js";
+import { GeneratePath } from './svgTools';
 
 export default class Interfaces {
-  constructor(public app: Application) {}
-  addFps() {
-    const style = new TextStyle({
-      fontFamily: "Arial",
-      fontSize: 36,
-      fontStyle: "italic",
-      fontWeight: "bold",
-      stroke: { color: "#4a1850", width: 5, join: "round" },
-      dropShadow: {
-        color: "#000000",
-        blur: 4,
-        angle: Math.PI / 6,
-        distance: 6,
-      },
-      wordWrap: true,
-      wordWrapWidth: 440,
-    });
-
-    // 创建一个文本对象用于显示帧率
-    const fpsText = new PixiText({
-      text: "FPS: 0",
-      style,
-    });
-    // 设置文本位置
-    fpsText.x = 10;
-    fpsText.y = 10;
-
-    fpsText.zIndex = 9999;
-    // 将文本添加到舞台
-    this.app.stage.addChild(fpsText);
-
-    // 创建一个计数器和时间变量
-    let frameCount = 0;
-    let lastTime = performance.now();
-
-    // 渲染循环
-    this.app.ticker.add(() => {
-      frameCount++;
-
-      // 每秒更新一次帧率
-      const currentTime = performance.now();
-      if (currentTime - lastTime >= 1000) {
-        fpsText.text = `FPS: ${frameCount}`;
-        frameCount = 0;
-        lastTime = currentTime;
+  columnsSpan: HTMLSpanElement;
+  rowsSpan: HTMLSpanElement;
+  columnsInput: HTMLInputElement;
+  rowsInput: HTMLInputElement;
+  optimizationInput: NodeListOf<HTMLInputElement>;
+  uploadButton: HTMLButtonElement;
+  startButton: HTMLButtonElement;
+  fileInput: HTMLInputElement;
+  previewImage: HTMLImageElement;
+  previewSvg: HTMLElement;
+  public onStart: ((src: string, rows: number, columns: number) => void) | null = null;
+  constructor() {
+    this.columnsSpan = document.getElementById('colmuns-label') as HTMLSpanElement;
+    this.rowsSpan = document.getElementById('rows-label') as HTMLSpanElement;
+    this.columnsInput = document.getElementById('colmuns') as HTMLInputElement;
+    this.rowsInput = document.getElementById('rows') as HTMLInputElement;
+    this.optimizationInput = document.getElementsByName(
+      'optimization'
+    ) as NodeListOf<HTMLInputElement>;
+    this.uploadButton = document.getElementById('upload') as HTMLButtonElement;
+    this.startButton = document.getElementById('start') as HTMLButtonElement;
+    this.fileInput = document.getElementById('file-upload') as HTMLInputElement;
+    this.previewImage = document.getElementById('preview-image') as HTMLImageElement;
+    this.previewSvg = document.getElementById('preview-svg') as HTMLElement;
+    this.init();
+  }
+  init() {
+    this.columnsInput.addEventListener('input', () => {
+      this.columnsSpan.innerHTML = this.columnsInput.value;
+      if (this.fileInput.files && this.fileInput.files[0]) {
+        const file = this.fileInput.files[0];
+        const src = URL.createObjectURL(file);
+        this.renderPreview(src);
       }
     });
+
+    this.rowsInput.addEventListener('input', () => {
+      this.rowsSpan.innerHTML = this.rowsInput.value;
+      if (this.fileInput.files && this.fileInput.files[0]) {
+        const file = this.fileInput.files[0];
+        const src = URL.createObjectURL(file);
+        this.renderPreview(src);
+      }
+    });
+    this.uploadButton.onclick = () => {
+      this.fileInput.click();
+    };
+    this.fileInput.onchange = () => {
+      if (this.fileInput.files && this.fileInput.files[0]) {
+        const file = this.fileInput.files[0];
+        const src = URL.createObjectURL(file);
+        this.renderPreview(src);
+      }
+    };
+    this.startButton.onclick = () => {
+      if (this.fileInput.files && this.fileInput.files[0]) {
+        const file = this.fileInput.files[0];
+        const src = URL.createObjectURL(file);
+        this.onStart?.(src, parseInt(this.rowsInput.value), parseInt(this.columnsInput.value));
+        this.hide();
+      } else {
+        alert('请选择文件');
+      }
+    };
+  }
+  renderPreview(src: string) {
+    this.previewImage.src = src;
+    this.previewImage.onload = () => {
+      const generatePath = new GeneratePath(
+        this.previewImage.width,
+        this.previewImage.height,
+        parseInt(this.rowsInput.value),
+        parseInt(this.columnsInput.value)
+      );
+      const svg = generatePath.getPath();
+      this.previewSvg.style.width = `${this.previewImage.width}px`;
+      this.previewSvg.style.height = `${this.previewImage.height}px`;
+      this.previewSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      this.previewSvg.setAttribute('version', '1.0');
+      this.previewSvg.setAttribute(
+        'viewBox',
+        `0 0 ${this.previewImage.width} ${this.previewImage.height}`
+      );
+      this.previewSvg.innerHTML = svg;
+    };
+  }
+  hide(){
+    (document.getElementById('ui') as HTMLDivElement).style.display = 'none';
   }
 }

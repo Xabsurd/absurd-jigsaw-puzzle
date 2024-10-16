@@ -3,8 +3,35 @@ html,body,#app,#content{
   padding: 0;
   width: 100%;
   height: 100%;
-  background-color: #fff;
+  background-color: #111111;
 }
 #app{
   overflow: hidden;
+}
+
+#ui{
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+#ui>*{
+  pointer-events: auto;
+}
+#ui form{
+  max-width: 340px;
+  margin: auto;
+}
+#ui form .preview{
+  width: 340px;
+  position: relative;
+  
+}
+#ui form .preview>*{
+  position: absolute;
+  top: 0;
+  left: 0;
+  
 }
