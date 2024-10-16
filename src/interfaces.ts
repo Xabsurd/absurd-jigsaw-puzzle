@@ -1,3 +1,4 @@
+import { OptimizationType } from './pieceTools';
 import { GeneratePath } from './svgTools';
 
 export default class Interfaces {
@@ -11,7 +12,9 @@ export default class Interfaces {
   fileInput: HTMLInputElement;
   previewImage: HTMLImageElement;
   previewSvg: HTMLElement;
-  public onStart: ((src: string, rows: number, columns: number) => void) | null = null;
+  public onStart:
+    | ((src: string, rows: number, columns: number, optimization: OptimizationType) => void)
+    | null = null;
   constructor() {
     this.columnsSpan = document.getElementById('colmuns-label') as HTMLSpanElement;
     this.rowsSpan = document.getElementById('rows-label') as HTMLSpanElement;
@@ -59,8 +62,15 @@ export default class Interfaces {
       if (this.fileInput.files && this.fileInput.files[0]) {
         const file = this.fileInput.files[0];
         const src = URL.createObjectURL(file);
-        this.onStart?.(src, parseInt(this.rowsInput.value), parseInt(this.columnsInput.value));
-        this.hide();
+        for (let i = 0; i < this.optimizationInput.length; i++) {
+          const element = this.optimizationInput[i];
+          console.log(element.id);
+          if (element.checked) {
+            this.onStart?.(src, parseInt(this.rowsInput.value), parseInt(this.columnsInput.value),element.id as OptimizationType);
+            this.hide();
+            return;
+          }
+        }
       } else {
         alert('请选择文件');
       }
@@ -87,7 +97,7 @@ export default class Interfaces {
       this.previewSvg.innerHTML = svg;
     };
   }
-  hide(){
+  hide() {
     (document.getElementById('ui') as HTMLDivElement).style.display = 'none';
   }
 }

@@ -1,7 +1,7 @@
 import { Application, Container, Sprite, TextStyle, Texture, Text as PixiText } from 'pixi.js';
 import './style.css';
 import { GeneratePath, TileTool } from './svgTools';
-import PieceTools, { loadImage } from './pieceTools';
+import PieceTools, { loadImage, OptimizationType } from './pieceTools';
 import UserControl from './userControl';
 import Interfaces from './interfaces';
 import PuzzleTile from './puzzleTile';
@@ -13,10 +13,10 @@ const appDiv = document.getElementById('app') as HTMLDivElement;
 // const svgContainer = document.getElementById('svg-container') as HTMLDivElement;
 // init();
 const interfaces = new Interfaces();
-interfaces.onStart = (src: string, rows: number, columns: number) => {
-  init(src, rows, columns);
+interfaces.onStart = (src: string, rows: number, columns: number,optimization:OptimizationType) => {
+  init(src, rows, columns,optimization);
 };
-async function init(baseImageSrc: string, rows: number, columns: number) {
+async function init(baseImageSrc: string, rows: number, columns: number,optimization:OptimizationType='none') {
   const app = new Application();
   await app.init({
     resizeTo: appDiv,
@@ -24,12 +24,12 @@ async function init(baseImageSrc: string, rows: number, columns: number) {
     resolution: window.devicePixelRatio || 1,
     autoDensity: true,
     preference: 'webgpu',
-    antialias: true
+    // antialias: true
   });
   appDiv.appendChild(app.canvas);
   addFps(app);
   // return;
-  const pixiTools = new PieceTools(app);
+  const pixiTools = new PieceTools(app,optimization);
   const img = await loadImage(baseImageSrc);
   const generatePath = new GeneratePath(img.width, img.height, rows, columns);
   const base_texture = Texture.from(img);

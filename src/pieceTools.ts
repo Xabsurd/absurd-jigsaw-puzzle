@@ -22,9 +22,9 @@ export function loadImage(src: string) {
     img.src = src;
   });
 }
-export type OptimizationT = 'none' | 'antialias' | 'reRender';
+export type OptimizationType = 'none' | 'antialias' | 'reRender';
 export default class PieceTools {
-  constructor(public app: Application, public optimization: OptimizationT = 'none') {}
+  constructor(public app: Application, public optimization: OptimizationType = 'none') {}
   getTextureByPath(target: Sprite, path: string) {
     const graphicsPath = new GraphicsPath(path);
     const mask = new Graphics();
