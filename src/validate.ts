@@ -1,5 +1,5 @@
 import { Container } from 'pixi.js';
-import PuzzleTile from './puzzleTilex';
+import PuzzleTile from './puzzleTile';
 import HitArea from './hitArea';
 export default class Validate {
   constructor(public puzzleTiles: Map<string, PuzzleTile>, public redundancy = 10) {}
