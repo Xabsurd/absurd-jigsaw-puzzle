@@ -12,9 +12,6 @@ export default class Interfaces {
   fileInput: HTMLInputElement;
   previewImage: HTMLImageElement;
   previewSvg: HTMLElement;
-  public onStart:
-    | ((src: string, rows: number, columns: number, optimization: OptimizationType) => void)
-    | null = null;
   constructor() {
     this.columnsSpan = document.getElementById('colmuns-label') as HTMLSpanElement;
     this.rowsSpan = document.getElementById('rows-label') as HTMLSpanElement;
@@ -58,23 +55,30 @@ export default class Interfaces {
         this.renderPreview(src);
       }
     };
-    this.startButton.onclick = () => {
-      if (this.fileInput.files && this.fileInput.files[0]) {
-        const file = this.fileInput.files[0];
-        const src = URL.createObjectURL(file);
-        for (let i = 0; i < this.optimizationInput.length; i++) {
-          const element = this.optimizationInput[i];
-          console.log(element.id);
-          if (element.checked) {
-            this.onStart?.(src, parseInt(this.rowsInput.value), parseInt(this.columnsInput.value),element.id as OptimizationType);
-            this.hide();
-            return;
+    return new Promise<{
+      src: string;
+      rows: number;
+      columns: number;
+      optimization: OptimizationType
+    }>((resolve) => {
+      this.startButton.onclick = () => {
+        if (this.fileInput.files && this.fileInput.files[0]) {
+          const file = this.fileInput.files[0];
+          const src = URL.createObjectURL(file);
+          for (let i = 0; i < this.optimizationInput.length; i++) {
+            const element = this.optimizationInput[i];
+            console.log(element.id);
+            if (element.checked) {
+              this.start();
+              resolve({ src, rows: parseInt(this.rowsInput.value), columns: parseInt(this.columnsInput.value), optimization: element.id as OptimizationType });
+              return;
+            }
           }
+        } else {
+          alert('请选择文件');
         }
-      } else {
-        alert('请选择文件');
-      }
-    };
+      };
+    });
   }
   renderPreview(src: string) {
     this.previewImage.src = src;
@@ -97,7 +101,7 @@ export default class Interfaces {
       this.previewSvg.innerHTML = svg;
     };
   }
-  hide() {
+  start() {
     (document.getElementById('ui') as HTMLDivElement).style.display = 'none';
   }
 }

@@ -56,12 +56,12 @@ export class GeneratePath {
     data += '</svg>';
     return data;
   }
-  getPath() {
+  getPath(color: string='#8bc5ff') {
     let data='';
-    data += '<path fill="none" stroke="#8bc5ff" stroke-width="1" d="';
+    data += '<path fill="none" stroke="' + color + '" stroke-width="1" d="';
     data += this.gen_dh().str;
     data += '"></path>';
-    data += '<path fill="none" stroke="#8bc5ff" stroke-width="1" d="';
+    data += '<path fill="none" stroke="' + color + '" stroke-width="1" d="';
     data += this.gen_dv().str;
     data += '"></path>';
     return data;
