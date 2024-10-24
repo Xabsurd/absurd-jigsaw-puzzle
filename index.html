@@ -9,6 +9,7 @@
     />
     <title>拼图游戏</title>
   </head>
+
   <body>
     <div id="svg-container"></div>
     <div id="app"></div>
@@ -44,30 +45,69 @@
             />
           </label>
           <fieldset>
-            <legend>优化方式</legend>
-            <input id="none" type="radio" name="optimization" checked />
-            <label for="none" data-tooltip="没有优化,最推荐">无</label>
-            <input id="antialias" type="radio" name="optimization" />
-            <label for="antialias" data-tooltip="添加抗锯齿.效果不明显,但会占用大量显存">
-              抗锯齿
-            </label>
-            <input id="reRender" type="radio" name="optimization" />
-            <label
-              for="reRender"
-              data-tooltip="添加抗锯齿.将碎片转换成图片再重新渲染,显存占用最小,但载入速度最慢"
-            >
-              重渲染
-            </label>
+            <legend>优化方式:</legend>
+            <div>
+              <label for="none" data-tooltip="没有优化,最推荐" class="inline-label">
+                <input id="none" type="radio" name="optimization" checked />
+                无
+              </label>
+              <label
+                for="antialias"
+                data-tooltip="添加抗锯齿.效果不明显,但会占用大量显存"
+                class="inline-label"
+              >
+                <input id="antialias" type="radio" name="optimization" />
+                抗锯齿
+              </label>
+              <label
+                for="reRender"
+                data-tooltip="添加抗锯齿.将碎片转换成图片再重新渲染,显存占用最小,但载入速度最慢"
+                class="inline-label"
+              >
+                <input id="reRender" type="radio" name="optimization" />
+                重渲染
+              </label>
+            </div>
           </fieldset>
+          <label>
+            边框颜色:
+            <input id="border-color" name="border-color" type="color" value="#8bc5ff" />
+          </label>
+          <label>
+            背景颜色:
+            <input id="background-color" name="background-color" type="color" value="#111111" />
+          </label>
+          <button type="button" id="upload" style="width: 100%">选择图片</button>
+          <input type="file" id="file-upload" accept="image/*" style="display: none" />
+          <button type="button" id="start" style="width: 100%">开始</button>
+          <legend>重新开始游戏直接F5刷新即可</legend>
         </fieldset>
-        <button type="button" id="upload" style="width: 100%">选择图片</button>
-        <input type="file" id="file-upload" accept="image/*" style="display: none" />
-        <button type="button" id="start" style="width: 100%">开始</button>
-        <legend>重新开始游戏直接F5刷新即可</legend>
       </form>
       <div class="preview">
         <img id="preview-image" />
         <svg id="preview-svg"></svg>
+      </div>
+      <div class="game-control" style="">
+        <button>
+          <svg id="control-aim" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+            <path
+              fill="currentColor"
+              d="M512 896a384 384 0 1 0 0-768 384 384 0 0 0 0 768m0 64a448 448 0 1 1 0-896 448 448 0 0 1 0 896"
+            ></path>
+            <path
+              fill="currentColor"
+              d="M512 96a32 32 0 0 1 32 32v192a32 32 0 0 1-64 0V128a32 32 0 0 1 32-32m0 576a32 32 0 0 1 32 32v192a32 32 0 1 1-64 0V704a32 32 0 0 1 32-32M96 512a32 32 0 0 1 32-32h192a32 32 0 0 1 0 64H128a32 32 0 0 1-32-32m576 0a32 32 0 0 1 32-32h192a32 32 0 1 1 0 64H704a32 32 0 0 1-32-32"
+            ></path>
+          </svg>
+        </button>
+        <button>
+          <svg id="control-refresh" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+            <path
+              fill="currentColor"
+              d="M771.776 794.88A384 384 0 0 1 128 512h64a320 320 0 0 0 555.712 216.448H654.72a32 32 0 1 1 0-64h149.056a32 32 0 0 1 32 32v148.928a32 32 0 1 1-64 0v-50.56zM276.288 295.616h92.992a32 32 0 0 1 0 64H220.16a32 32 0 0 1-32-32V178.56a32 32 0 0 1 64 0v50.56A384 384 0 0 1 896.128 512h-64a320 320 0 0 0-555.776-216.384z"
+            ></path>
+          </svg>
+        </button>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

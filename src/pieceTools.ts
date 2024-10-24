@@ -11,7 +11,6 @@ import {
   Sprite,
 } from 'pixi.js';
 import { svgPathProperties } from 'svg-path-properties';
-import { OutlineFilter } from 'pixi-filters/outline';
 import PuzzleTile from './puzzleTile';
 import HitArea from './hitArea';
 export function loadImage(src: string) {
@@ -24,13 +23,13 @@ export function loadImage(src: string) {
 }
 export type OptimizationType = 'none' | 'antialias' | 'reRender';
 export default class PieceTools {
-  constructor(public app: Application, public optimization: OptimizationType = 'none') {}
+  constructor(public app: Application, public optimization: OptimizationType = 'none', public borderColor = '0x8bc5ff') {}
   getTextureByPath(target: Sprite, path: string) {
     const graphicsPath = new GraphicsPath(path);
     const mask = new Graphics();
     mask.path(graphicsPath);
-    mask.fill({ color: 0xebc5ff });
-    mask.stroke({ color: 0x8bc5ff, width: 3, alpha: 1 });
+    mask.fill({ color: 0xffffff });
+    // mask.stroke({ color: 0x8bc5ff, width: 3, alpha: 1 });
     target.mask = mask;
     const texture = this.app.renderer.generateTexture({
       target: target,
@@ -43,20 +42,11 @@ export default class PieceTools {
     let graphicsPath: GraphicsPath | null = new GraphicsPath(path);
     const mask = new Graphics();
     mask.path(graphicsPath);
-    mask.fill({ color: 0xebc5ff });
-    mask.stroke({ color: 0x8bc5ff, width: 3, alpha: 1 });
+    mask.fill({ color: 0xffffff });
     target.mask = mask;
     const border_g = new Graphics();
     border_g.path(graphicsPath);
-    // border_g.stroke({ color: 0x8bc5ff, width: 2, alpha: 0.5 });
-    border_g.fill({ color: 0xffffff, alpha: 1 });
-    const outlineFilter = new OutlineFilter({
-      color: 0x8bc5ff,
-      alpha: 0.5,
-      thickness: 2,
-      knockout: true
-    });
-    border_g.filters = outlineFilter;
+    border_g.stroke({ color: this.borderColor, width: 2});
     const texture: RenderTexture | null = RenderTexture.create({
       width: graphicsPath.bounds.width + offset * 2,
       height: graphicsPath.bounds.height + offset * 2,

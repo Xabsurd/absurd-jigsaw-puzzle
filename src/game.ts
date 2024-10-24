@@ -1,18 +1,21 @@
 import { Application, Container, Sprite, TextStyle, Texture, Text as PixiText } from 'pixi.js';
 
 import { GeneratePath, TileTool } from './svgTools';
-import PieceTools, { loadImage } from './pieceTools';
+import PieceTools, { loadImage, OptimizationType } from './pieceTools';
 import UserControl from './userControl';
 
 import PuzzleTile from './puzzleTile';
 import Validate from './validate';
 export default class Gmae {
   app: Application;
+  userControl: UserControl | undefined;
   constructor(
     public dom: HTMLElement,
     public baseImageSrc: string,
     public rows: number,
-    public columns: number
+    public columns: number,
+    public optimization: OptimizationType = 'none',
+    public borderColor = '#ffffff'
   ) {
     this.app = new Application();
     this.init();
@@ -28,24 +31,23 @@ export default class Gmae {
     });
     this.dom.appendChild(this.app.canvas);
     this.addFps();
-    // return;
-    const pixiTools = new PieceTools(this.app);
+
+    const pieceTools = new PieceTools(this.app, this.optimization, this.borderColor);
     const img = await loadImage(this.baseImageSrc);
     const generatePath = new GeneratePath(img.width, img.height, this.rows, this.columns);
     const base_texture = Texture.from(img);
     const container = new Container();
-    this.app.stage.addChild(container);
     const baseSprite = new Sprite(base_texture);
     const lines = generatePath.getLines();
     const tileTool = new TileTool(lines);
-    const userControl = new UserControl(this.app, container, baseSprite);
+    this.userControl = new UserControl(this.app, container, baseSprite);
     const puzzleTiles = new Map<string, PuzzleTile>();
-    userControl.setCenter();
-    console.log(this.app.screen.width - baseSprite.width * container.scale.x);
+    this.app.stage.addChild(container);
+    this.userControl.setCenter();
     for (let x = 0; x < this.columns; x++) {
       for (let y = 0; y < this.rows; y++) {
         const path = tileTool.getTilePath(x, y);
-        const puzzle = await pixiTools.getSpriteByPath(baseSprite, path);
+        const puzzle = await pieceTools.getSpriteByPath(baseSprite, path);
         const target = puzzle.target;
         target.x =
           Math.random() * (baseSprite.width * 2 - target.children[0].width) -
@@ -63,7 +65,7 @@ export default class Gmae {
         target.interactive = true;
         target.zIndex = 0;
         container.addChild(target);
-        userControl.handle(target);
+        this.userControl.handle(target);
         const puzzleTile = target.children[0] as PuzzleTile;
         puzzleTile.column = x;
         puzzleTile.row = y;
@@ -72,12 +74,15 @@ export default class Gmae {
       }
     }
     const validate = new Validate(puzzleTiles);
-    userControl.on('pointerup', (target) => {
+    this.userControl.on('pointerup', (target) => {
       if (target) validate.validate(target);
       if (container.children.length === 1) {
         alert('拼图完成');
       }
     });
+  }
+  toCenter() {
+    this.userControl?.setCenter();
   }
   addFps() {
     const style = new TextStyle({

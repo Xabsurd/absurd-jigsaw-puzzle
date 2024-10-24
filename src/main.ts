@@ -8,7 +8,13 @@ const appDiv = document.getElementById('app') as HTMLDivElement;
 // const svgContainer = document.getElementById('svg-container') as HTMLDivElement;
 // init();
 const interfaces = new Interfaces();
+let game: Game;
 interfaces.init().then((data) => {
-  console.log(data);
-  new Game(appDiv, data.src, data.rows, data.columns);
+  game = new Game(appDiv, data.src, data.rows, data.columns, data.optimization, data.borderColor);
+});
+interfaces.addGameControlEventListener('center', 'click', () => {
+  game.toCenter();
+});
+interfaces.addGameControlEventListener('restart', 'click', () => {
+  window.location.reload();
 });

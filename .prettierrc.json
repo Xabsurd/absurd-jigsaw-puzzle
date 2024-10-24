@@ -6,5 +6,6 @@
   "printWidth": 100,
   "trailingComma": "none",
   "bracketSameLine": false,
-  "htmlWhitespaceSensitivity": "ignore"
+  "htmlWhitespaceSensitivity": "ignore",
+  "bracketSpacing": true
 }
