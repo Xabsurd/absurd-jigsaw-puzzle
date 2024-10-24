@@ -1,14 +1,23 @@
 import { Application, Container, Sprite, TextStyle, Texture, Text as PixiText } from 'pixi.js';
-
-import { GeneratePath, TileTool } from './svgTools';
+import { clearTextureCache } from '@pixi/utils';
+import { GeneratePath, LinesType, TileTool } from './svgTools';
 import PieceTools, { loadImage, OptimizationType } from './pieceTools';
 import UserControl from './userControl';
 
 import PuzzleTile from './puzzleTile';
 import Validate from './validate';
 export default class Gmae {
+  puzzleTiles!: Map<string, PuzzleTile>;
   app: Application;
   userControl: UserControl | undefined;
+  pieceTools!: PieceTools;
+  img!: HTMLImageElement;
+  generatePath!: GeneratePath;
+  base_texture!: Texture;
+  container!: Container;
+  baseSprite: Sprite = new Sprite();
+  lines!: LinesType;
+  tileTool!: TileTool;
   constructor(
     public dom: HTMLElement,
     public baseImageSrc: string,
@@ -18,7 +27,6 @@ export default class Gmae {
     public borderColor = '#ffffff'
   ) {
     this.app = new Application();
-    this.init();
   }
   async init() {
     await this.app.init({
@@ -31,59 +39,89 @@ export default class Gmae {
     });
     this.dom.appendChild(this.app.canvas);
     this.addFps();
-
-    const pieceTools = new PieceTools(this.app, this.optimization, this.borderColor);
-    const img = await loadImage(this.baseImageSrc);
-    const generatePath = new GeneratePath(img.width, img.height, this.rows, this.columns);
-    const base_texture = Texture.from(img);
-    const container = new Container();
-    const baseSprite = new Sprite(base_texture);
-    const lines = generatePath.getLines();
-    const tileTool = new TileTool(lines);
-    this.userControl = new UserControl(this.app, container, baseSprite);
-    const puzzleTiles = new Map<string, PuzzleTile>();
-    this.app.stage.addChild(container);
+    this.pieceTools = new PieceTools(this.app, this.optimization, this.borderColor);
+  }
+  async start() {
+    this.img = await loadImage(this.baseImageSrc);
+    this.generatePath = new GeneratePath(this.img.width, this.img.height, this.rows, this.columns);
+    this.base_texture = Texture.from(this.img);
+    this.container = new Container();
+    this.baseSprite = new Sprite(this.base_texture);
+    this.lines = this.generatePath.getLines();
+    this.tileTool = new TileTool(this.lines);
+    this.userControl = new UserControl(this.app, this.container, this.baseSprite);
+    this.puzzleTiles = new Map<string, PuzzleTile>();
+    this.app.stage.addChild(this.container);
     this.userControl.setCenter();
     for (let x = 0; x < this.columns; x++) {
       for (let y = 0; y < this.rows; y++) {
-        const path = tileTool.getTilePath(x, y);
-        const puzzle = await pieceTools.getSpriteByPath(baseSprite, path);
+        const path = this.tileTool.getTilePath(x, y);
+        const puzzle = await this.pieceTools.getSpriteByPath(this.baseSprite, path);
         const target = puzzle.target;
         target.x =
-          Math.random() * (baseSprite.width * 2 - target.children[0].width) -
+          Math.random() * (this.baseSprite.width * 2 - target.children[0].width) -
           puzzle.parentBound.x +
-          (this.app.screen.width - baseSprite.width * container.scale.x * 2) /
+          (this.app.screen.width - this.baseSprite.width * this.container.scale.x * 2) /
             2 /
-            container.scale.x;
+            this.container.scale.x;
         target.y =
-          Math.random() * (baseSprite.height * 2 - target.children[0].height) -
+          Math.random() * (this.baseSprite.height * 2 - target.children[0].height) -
           puzzle.parentBound.y +
-          (this.app.screen.height - baseSprite.height * container.scale.y * 2) /
+          (this.app.screen.height - this.baseSprite.height * this.container.scale.y * 2) /
             2 /
-            container.scale.y;
+            this.container.scale.y;
         target.eventMode = 'static';
         target.interactive = true;
         target.zIndex = 0;
-        container.addChild(target);
+        this.container.addChild(target);
         this.userControl.handle(target);
         const puzzleTile = target.children[0] as PuzzleTile;
         puzzleTile.column = x;
         puzzleTile.row = y;
         puzzleTile.offsetBounds = puzzle.parentBound;
-        puzzleTiles.set(x + '-' + y, puzzleTile);
+        this.puzzleTiles.set(x + '-' + y, puzzleTile);
       }
     }
-    const validate = new Validate(puzzleTiles);
+    const validate = new Validate(this.puzzleTiles);
     this.userControl.on('pointerup', (target) => {
       if (target) validate.validate(target);
-      if (container.children.length === 1) {
-        alert('拼图完成');
+      if (this.container.children.length === 1) {
+        this.finish();
       }
     });
+  }
+  finish() {
+    alert('finish');
+  }
+  restart(
+    baseImageSrc: string,
+    rows: number,
+    columns: number,
+    optimization: OptimizationType = 'none',
+    borderColor = '#ffffff'
+  ) {
+    this.baseImageSrc = baseImageSrc;
+    this.rows = rows;
+    this.columns = columns;
+    this.optimization = optimization;
+    this.borderColor = borderColor;
+    this.destroy();
+    this.start();
+  }
+  destroy() {
+    this.container.destroy(true);
+    this.baseSprite.destroy(true);
+    this.base_texture.destroy(true);
+    this.app.stage.removeChildren();
+    this.puzzleTiles.clear();
+    clearTextureCache();
+    // this.puzzleTiles.forEach((tile) => tile.destroy(true));
+    // this.app.destroy(true);
   }
   toCenter() {
     this.userControl?.setCenter();
   }
+
   addFps() {
     const style = new TextStyle({
       fontFamily: 'Arial',

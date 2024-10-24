@@ -9,12 +9,16 @@ const appDiv = document.getElementById('app') as HTMLDivElement;
 // init();
 const interfaces = new Interfaces();
 let game: Game;
-interfaces.init().then((data) => {
+interfaces.init().then(async (data) => {
   game = new Game(appDiv, data.src, data.rows, data.columns, data.optimization, data.borderColor);
+  await game.init();
+  game.start();
 });
-interfaces.addGameControlEventListener('center', 'click', () => {
+interfaces.addControlEventListener('center', 'click', () => {
   game.toCenter();
 });
-interfaces.addGameControlEventListener('restart', 'click', () => {
-  window.location.reload();
+interfaces.addControlEventListener('restart', 'click', async () => {
+  const data = await interfaces.restart();
+  // game.destroy();
+  game.restart(data.src, data.rows, data.columns, data.optimization, data.borderColor);
 });

@@ -1,3 +1,21 @@
+export type LinesType={
+  dh: {
+      str: string;
+      lines: {
+          start: string;
+          paths: string[];
+      }[];
+  };
+  dv: {
+      str: string;
+      lines: {
+          start: string;
+          paths: string[];
+      }[];
+  };
+  width: number;
+  height: number;
+}
 export class GeneratePath {
   // a, b, c, d, e, t, j, flip, xi, yi, xn, yn, vertical, offset, width, height, radius
   #a = 0;
@@ -30,7 +48,7 @@ export class GeneratePath {
     }
     return points;
   }
-  getLines() {
+  getLines():LinesType {
     const dh = this.gen_dh();
     const dv = this.gen_dv();
     return { dh, dv, width: this.width, height: this.height };

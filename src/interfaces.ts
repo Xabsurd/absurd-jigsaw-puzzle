@@ -31,9 +31,9 @@ export default class Interfaces {
     this.previewSvg = document.getElementById('preview-svg') as HTMLElement;
     this.borderColor = document.getElementById('border-color') as HTMLInputElement;
     this.backgroundColor = document.getElementById('background-color') as HTMLInputElement;
-    this.init();
+    this.setup();
   }
-  init() {
+  setup() {
     this.columnsInput.addEventListener('change', () => {
       this.columnsSpan.innerHTML = this.columnsInput.value;
     });
@@ -56,6 +56,8 @@ export default class Interfaces {
     this.fileInput.onchange = () => {
       this.renderPreview();
     };
+  }
+  init() {
     return new Promise<{
       src: string;
       rows: number;
@@ -118,7 +120,16 @@ export default class Interfaces {
     const preview = document.getElementById('ui')?.getElementsByClassName('preview') as
       | NodeListOf<HTMLDivElement>
       | undefined;
+    if (preview) preview[0].style.display = 'none';
+  }
+  restart(){
+    const form = document.getElementById('ui')?.getElementsByTagName('form');
+    if (form) form[0].style.display = 'block';
+    const preview = document.getElementById('ui')?.getElementsByClassName('preview') as
+      | NodeListOf<HTMLDivElement>
+      | undefined;
     if (preview) preview[0].style.display = 'block';
+    return this.init();
   }
   addControlEventListener<K extends keyof HTMLElementEventMap>(
     name: ControlName,
