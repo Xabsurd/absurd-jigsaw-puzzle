@@ -1,5 +1,11 @@
-import { Application, Container, Sprite, TextStyle, Texture, Text as PixiText } from 'pixi.js';
-import { clearTextureCache } from '@pixi/utils';
+import {
+  Application,
+  Container,
+  Sprite,
+  Texture,
+  CLEAR
+} from 'pixi.js';
+import { clearTextureCache, destroyTextureCache } from '@pixi/utils';
 import { GeneratePath, LinesType, TileTool } from './svgTools';
 import PieceTools, { loadImage, OptimizationType } from './pieceTools';
 import UserControl from './userControl';
@@ -7,17 +13,18 @@ import UserControl from './userControl';
 import PuzzleTile from './puzzleTile';
 import Validate from './validate';
 export default class Gmae {
-  puzzleTiles!: Map<string, PuzzleTile>;
-  app: Application;
+  puzzleTiles = new Map<string, PuzzleTile>();
+  app: Application | undefined;
   userControl: UserControl | undefined;
-  pieceTools!: PieceTools;
-  img!: HTMLImageElement;
-  generatePath!: GeneratePath;
-  base_texture!: Texture;
+  pieceTools: PieceTools | undefined;
+  img: HTMLImageElement | undefined;
+  generatePath: GeneratePath | undefined;
+  base_texture: Texture | undefined;
   container!: Container;
   baseSprite: Sprite = new Sprite();
-  lines!: LinesType;
-  tileTool!: TileTool;
+  lines: LinesType | undefined;
+  tileTool: TileTool | undefined;
+  finishCallback: () => void = () => {};
   constructor(
     public dom: HTMLElement,
     public baseImageSrc: string,
@@ -29,6 +36,7 @@ export default class Gmae {
     this.app = new Application();
   }
   async init() {
+    if (!this.app) return;
     await this.app.init({
       resizeTo: this.dom,
       backgroundAlpha: 0,
@@ -38,10 +46,11 @@ export default class Gmae {
       antialias: true
     });
     this.dom.appendChild(this.app.canvas);
-    this.addFps();
+    // this.addFps();
     this.pieceTools = new PieceTools(this.app, this.optimization, this.borderColor);
   }
   async start() {
+    if (!this.app) return;
     this.img = await loadImage(this.baseImageSrc);
     this.generatePath = new GeneratePath(this.img.width, this.img.height, this.rows, this.columns);
     this.base_texture = Texture.from(this.img);
@@ -50,13 +59,13 @@ export default class Gmae {
     this.lines = this.generatePath.getLines();
     this.tileTool = new TileTool(this.lines);
     this.userControl = new UserControl(this.app, this.container, this.baseSprite);
-    this.puzzleTiles = new Map<string, PuzzleTile>();
     this.app.stage.addChild(this.container);
     this.userControl.setCenter();
     for (let x = 0; x < this.columns; x++) {
       for (let y = 0; y < this.rows; y++) {
         const path = this.tileTool.getTilePath(x, y);
-        const puzzle = await this.pieceTools.getSpriteByPath(this.baseSprite, path);
+        const puzzle = await this.pieceTools?.getSpriteByPath(this.baseSprite, path);
+        if (!puzzle) continue;
         const target = puzzle.target;
         target.x =
           Math.random() * (this.baseSprite.width * 2 - target.children[0].width) -
@@ -91,7 +100,7 @@ export default class Gmae {
     });
   }
   finish() {
-    alert('finish');
+    this.finishCallback();
   }
   restart(
     baseImageSrc: string,
@@ -105,68 +114,78 @@ export default class Gmae {
     this.columns = columns;
     this.optimization = optimization;
     this.borderColor = borderColor;
-    this.destroy();
     this.start();
   }
   destroy() {
+    this.puzzleTiles.forEach((tile) => {
+      tile.removeChildren();
+      tile.destroy(true);
+    });
+    this.puzzleTiles.clear();
+    this.app?.stage.removeChild(this.container);
     this.container.destroy(true);
     this.baseSprite.destroy(true);
-    this.base_texture.destroy(true);
-    this.app.stage.removeChildren();
-    this.puzzleTiles.clear();
+    this.base_texture?.destroy(true);
+    destroyTextureCache();
     clearTextureCache();
-    // this.puzzleTiles.forEach((tile) => tile.destroy(true));
-    // this.app.destroy(true);
+    this.app?.stage.removeAllListeners();
+    this.generatePath = undefined;
+    this.tileTool = undefined;
+    this.userControl = undefined;
+    this.img = undefined;
+    this.app?.renderer.clear({
+      clear: CLEAR.ALL
+    });
   }
   toCenter() {
     this.userControl?.setCenter();
   }
 
-  addFps() {
-    const style = new TextStyle({
-      fontFamily: 'Arial',
-      fontSize: 36,
-      fontStyle: 'italic',
-      fontWeight: 'bold',
-      stroke: { color: '#cecece', width: 2, join: 'round' },
-      dropShadow: {
-        color: '#000000',
-        blur: 2,
-        angle: Math.PI / 6,
-        distance: 6
-      },
-      wordWrap: true,
-      wordWrapWidth: 440
-    });
+  //   addFps() {
+  //     const style = new TextStyle({
+  //       fontFamily: 'Arial',
+  //       fontSize: 24,
+  //       fontStyle: 'italic',
+  //       fontWeight: 'bold',
+  //       stroke: { color: '#cecece', width: 2, join: 'round' },
+  //       dropShadow: {
+  //         color: '#000000',
+  //         blur: 2,
+  //         angle: Math.PI / 6,
+  //         distance: 6
+  //       },
+  //       wordWrap: true,
+  //       wordWrapWidth: 440
+  //     });
 
-    // 创建一个文本对象用于显示帧率
-    const fpsText = new PixiText({
-      text: 'FPS: 0',
-      style
-    });
-    // 设置文本位置
-    fpsText.x = 10;
-    fpsText.y = 10;
+  //     // 创建一个文本对象用于显示帧率
+  //     const fpsText = new PixiText({
+  //       text: 'FPS: 0',
+  //       style
+  //     });
+  //     // 设置文本位置
+  //     fpsText.x = 7;
+  //     fpsText.y = 50;
 
-    fpsText.zIndex = 9999;
-    // 将文本添加到舞台
-    this.app.stage.addChild(fpsText);
+  //     fpsText.zIndex = 9999;
+  //     // 将文本添加到舞台
+  //     this.app?.stage.addChild(fpsText);
 
-    // 创建一个计数器和时间变量
-    let frameCount = 0;
-    let lastTime = performance.now();
+  //     // 创建一个计数器和时间变量
+  //     let frameCount = 0;
+  //     let lastTime = performance.now();
 
-    // 渲染循环
-    this.app.ticker.add(() => {
-      frameCount++;
+  //     // 渲染循环
+  //     this.app?.ticker.add(() => {
+  //       frameCount++;
 
-      // 每秒更新一次帧率
-      const currentTime = performance.now();
-      if (currentTime - lastTime >= 1000) {
-        fpsText.text = `FPS: ${frameCount}`;
-        frameCount = 0;
-        lastTime = currentTime;
-      }
-    });
-  }
+  //       // 每秒更新一次帧率
+  //       const currentTime = performance.now();
+  //       if (currentTime - lastTime >= 1000) {
+  //         fpsText.text = `FPS: ${frameCount}`;
+  //         frameCount = 0;
+  //         lastTime = currentTime;
+  //       }
+  //     });
+  //   }
 }

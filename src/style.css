@@ -50,8 +50,8 @@ body,
 }
 #ui .game-control{
   position: absolute;
-  bottom: 0;
-  top: 0;
+  left: 0.5rem;
+  top:  0.5rem;
   pointer-events: none;
 }
 #ui .game-control button{
@@ -63,4 +63,54 @@ body,
 #ui .game-control button svg{
   height: 1rem;
   width: 1rem;
+}
+dialog.modal-is-opening{
+  animation: to-alpha 0.3s ease-in-out forwards;
+}
+dialog.modal-is-closing{
+  animation: from-alpha 0.3s ease-in-out forwards;
+}
+dialog.modal-is-opening article{
+  animation: modal-opening 0.3s ease-in-out forwards;
+}
+dialog.modal-is-closing article{
+  animation: modal-closing 0.3s ease-in-out forwards;
+}
+p.space {
+  text-indent: 2em;
+}
+
+@keyframes to-alpha {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes from-alpha {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+  
+}
+@keyframes modal-opening {
+  from {
+    translate: 0 -50px;
+  }
+  to {
+    translate: 0 0;
+  }
+}
+
+@keyframes modal-closing {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 -50px;
+  }
 }

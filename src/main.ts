@@ -13,12 +13,16 @@ interfaces.init().then(async (data) => {
   game = new Game(appDiv, data.src, data.rows, data.columns, data.optimization, data.borderColor);
   await game.init();
   game.start();
+  game.finishCallback = () => {
+    interfaces.finish();
+  };
 });
 interfaces.addControlEventListener('center', 'click', () => {
   game.toCenter();
 });
 interfaces.addControlEventListener('restart', 'click', async () => {
+  game.destroy();
   const data = await interfaces.restart();
-  // game.destroy();
+  // await game.init();
   game.restart(data.src, data.rows, data.columns, data.optimization, data.borderColor);
 });
