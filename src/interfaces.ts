@@ -46,10 +46,15 @@ export default class Interfaces {
     this.setup();
   }
   setup() {
-    this.columnsInput.addEventListener('change', () => {
+    this.columnsInput.addEventListener('input', () => {
       this.columnsSpan.innerHTML = this.columnsInput.value;
     });
-
+    this.columnsInput.addEventListener('change', () => {
+      this.renderPreview();
+    });
+    this.rowsInput.addEventListener('input', () => {
+      this.rowsSpan.innerHTML = this.rowsInput.value;
+    });
     this.rowsInput.addEventListener('change', () => {
       this.rowsSpan.innerHTML = this.rowsInput.value;
       this.renderPreview();

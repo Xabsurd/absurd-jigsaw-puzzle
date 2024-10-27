@@ -20,7 +20,6 @@ export default class Validate {
           return;
         }
       }
-
       if (right_tile && tile.parent.uid !== right_tile.parent.uid) {
         if (this.overlapping(tile, right_tile)) {
           this.merge(tile, right_tile);
@@ -47,11 +46,8 @@ export default class Validate {
     const tile1_y = tile1.parent.y;
     const tile2_x = tile2.parent.x;
     const tile2_y = tile2.parent.y;
-    if (isNaN(tile1_x) || isNaN(tile1_y) || isNaN(tile2_x) || isNaN(tile2_y)) {
-      return false;
-    }
     if (
-      Math.abs(tile1_x - tile2_x) < this.redundancy ||
+      Math.abs(tile1_x - tile2_x) < this.redundancy &&
       Math.abs(tile1_y - tile2_y) < this.redundancy
     ) {
       return true;

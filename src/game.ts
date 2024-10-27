@@ -93,6 +93,7 @@ export default class Gmae {
     }
     const validate = new Validate(this.puzzleTiles);
     this.userControl.on('pointerup', (target) => {
+      if (target?.uid===this.container.uid) return;
       if (target) validate.validate(target);
       if (this.container.children.length === 1) {
         this.finish();
