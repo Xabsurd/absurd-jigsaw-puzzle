@@ -8,8 +8,8 @@
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.blue.min.css"
     />
     <title>拼图游戏</title>
-    <script type="module" crossorigin src="./assets/index-Cdx0-1Sb.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-DBiNY_i6.css">
+    <script type="module" crossorigin src="./assets/index-BeFvNaWY.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-K5pN4Y3q.css">
   </head>
 
   <body>
@@ -89,9 +89,9 @@
         <img id="preview-image" />
         <svg id="preview-svg"></svg>
       </div>
-      <div class="game-control" style="">
-        <button>
-          <svg id="control-aim" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+      <div class="game-control" style="display: none;">
+        <button id="control-aim" data-tooltip="居中画布" data-placement="right">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
             <path
               fill="currentColor"
               d="M512 896a384 384 0 1 0 0-768 384 384 0 0 0 0 768m0 64a448 448 0 1 1 0-896 448 448 0 0 1 0 896"
@@ -102,14 +102,25 @@
             ></path>
           </svg>
         </button>
-        <button>
-          <svg id="control-refresh" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+        <button id="control-refresh" data-tooltip="重新开始游戏" data-placement="bottom">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
             <path
               fill="currentColor"
               d="M771.776 794.88A384 384 0 0 1 128 512h64a320 320 0 0 0 555.712 216.448H654.72a32 32 0 1 1 0-64h149.056a32 32 0 0 1 32 32v148.928a32 32 0 1 1-64 0v-50.56zM276.288 295.616h92.992a32 32 0 0 1 0 64H220.16a32 32 0 0 1-32-32V178.56a32 32 0 0 1 64 0v50.56A384 384 0 0 1 896.128 512h-64a320 320 0 0 0-555.776-216.384z"
             ></path>
           </svg>
         </button>
+
+        <button id="control-tip" data-tooltip="提示" data-placement="bottom">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+            <path
+              fill="currentColor"
+              d="M512 64a448 448 0 1 1 0 896.064A448 448 0 0 1 512 64m67.2 275.072c33.28 0 60.288-23.104 60.288-57.344s-27.072-57.344-60.288-57.344c-33.28 0-60.16 23.104-60.16 57.344s26.88 57.344 60.16 57.344M590.912 699.2c0-6.848 2.368-24.64 1.024-34.752l-52.608 60.544c-10.88 11.456-24.512 19.392-30.912 17.28a12.992 12.992 0 0 1-8.256-14.72l87.68-276.992c7.168-35.136-12.544-67.2-54.336-71.296-44.096 0-108.992 44.736-148.48 101.504 0 6.784-1.28 23.68.064 33.792l52.544-60.608c10.88-11.328 23.552-19.328 29.952-17.152a12.8 12.8 0 0 1 7.808 16.128L388.48 728.576c-10.048 32.256 8.96 63.872 55.04 71.04 67.84 0 107.904-43.648 147.456-100.416z"
+            ></path>
+          </svg>
+        </button>
+        <span id="fps">fps:<strong>0</strong></span>
+        <span id="timer">用时:<strong>0</strong></span>
       </div>
     </div>
   </body>
