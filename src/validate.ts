@@ -43,10 +43,10 @@ export default class Validate {
     }
   }
   public overlapping(tile1: PuzzleTile, tile2: PuzzleTile) {
-    const tile1_x = tile1.x + tile1.parent.x - tile1.offsetBounds.x;
-    const tile1_y = tile1.y + tile1.parent.y - tile1.offsetBounds.y;
-    const tile2_x = tile2.x + tile2.parent.x - tile2.offsetBounds.x;
-    const tile2_y = tile2.y + tile2.parent.y - tile2.offsetBounds.y;
+    const tile1_x = tile1.parent.x;
+    const tile1_y = tile1.parent.y;
+    const tile2_x = tile2.parent.x;
+    const tile2_y = tile2.parent.y;
     if (isNaN(tile1_x) || isNaN(tile1_y) || isNaN(tile2_x) || isNaN(tile2_y)) {
       return false;
     }
