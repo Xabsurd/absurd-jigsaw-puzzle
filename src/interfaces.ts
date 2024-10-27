@@ -150,7 +150,7 @@ export default class Interfaces {
       | NodeListOf<HTMLDivElement>
       | undefined;
     if (preview) preview[0].style.display = 'none';
-    (document.getElementById('ui')?.getElementsByClassName('game-control')[0] as HTMLDivElement).style.display = 'block';
+    document.getElementById('ui')?.classList.add('game-start');
     this.beginTime = performance.now();
   }
   restart() {
@@ -160,7 +160,7 @@ export default class Interfaces {
       | NodeListOf<HTMLDivElement>
       | undefined;
     if (preview) preview[0].style.display = 'block';
-    (document.getElementById('ui')?.getElementsByClassName('game-control')[0] as HTMLDivElement).style.display = 'none';
+    document.getElementById('ui')?.classList.remove('game-start');
     this.fps = 0;
     this.timer = 0;
     this.beginTime = 0;
@@ -194,7 +194,7 @@ export default class Interfaces {
     const now = performance.now();
     this.timer = now - this.beginTime;
     this.fps++;
-    if(now - this.lastTime >= 1000){
+    if (now - this.lastTime >= 1000) {
       this.fpsSpan.innerHTML = `fps:<strong>${this.fps}</strong>`;
       this.timerSpan.innerHTML = `用时:<strong>${this.formatTime(this.timer)}</strong>`;
       this.fps = 0;
@@ -208,10 +208,10 @@ export default class Interfaces {
     const second = Math.floor(time / 1000);
     const minute = Math.floor(second / 60);
     const hour = Math.floor(minute / 60);
-    return `${hour? `${hour}:` : ''}${minute? `${minute}:` : ''}${second % 60}`;
+    return `${hour ? `${hour}:` : ''}${minute ? `${minute}:` : ''}${second % 60}`;
   }
   finish() {
-    this.model.change('恭喜', '游戏结束');
+    this.model.change('恭喜', '游戏结束<br>用时' + this.formatTime(this.timer), '');
     this.model.open();
   }
 }

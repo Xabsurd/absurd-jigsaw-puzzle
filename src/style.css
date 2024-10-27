@@ -59,10 +59,21 @@ body,
   height: 1.75rem;
   width: 1.75rem;
   padding: 0;
+  display: none;
 }
 #ui .game-control button svg{
   height: 1rem;
   width: 1rem;
+}
+
+#ui .game-control span{
+  display: none;
+}
+#ui.game-start .game-control button{
+  display: inline-block;
+}
+#ui.game-start .game-control span{
+  display: inline-block;
 }
 dialog.modal-is-opening{
   animation: to-alpha 0.3s ease-in-out forwards;
