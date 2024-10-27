@@ -1,8 +1,9 @@
 import { Model } from './model';
 import { OptimizationType } from './pieceTools';
 import { GeneratePath } from './svgTools';
-
+import getLocal, { MessageSchema } from './language/local';
 export default class Interfaces {
+  local:MessageSchema | undefined;
   tipButton: HTMLButtonElement;
   columnsSpan: HTMLSpanElement;
   rowsSpan: HTMLSpanElement;
@@ -44,12 +45,19 @@ export default class Interfaces {
     this.fpsSpan = document.getElementById('fps') as HTMLSpanElement;
     this.timerSpan = document.getElementById('timer') as HTMLSpanElement;
     this.setup();
+    
   }
-  setup() {
-    this.columnsInput.addEventListener('change', () => {
+  async setup() {
+    this.local= await getLocal();
+    this.columnsInput.addEventListener('input', () => {
       this.columnsSpan.innerHTML = this.columnsInput.value;
     });
-
+    this.columnsInput.addEventListener('change', () => {
+      this.renderPreview();
+    });
+    this.rowsInput.addEventListener('input', () => {
+      this.rowsSpan.innerHTML = this.rowsInput.value;
+    });
     this.rowsInput.addEventListener('change', () => {
       this.rowsSpan.innerHTML = this.rowsInput.value;
       this.renderPreview();
@@ -150,7 +158,7 @@ export default class Interfaces {
       | NodeListOf<HTMLDivElement>
       | undefined;
     if (preview) preview[0].style.display = 'none';
-    (document.getElementById('ui')?.getElementsByClassName('game-control')[0] as HTMLDivElement).style.display = 'block';
+    document.getElementById('ui')?.classList.add('game-start');
     this.beginTime = performance.now();
   }
   restart() {
@@ -160,7 +168,7 @@ export default class Interfaces {
       | NodeListOf<HTMLDivElement>
       | undefined;
     if (preview) preview[0].style.display = 'block';
-    (document.getElementById('ui')?.getElementsByClassName('game-control')[0] as HTMLDivElement).style.display = 'none';
+    document.getElementById('ui')?.classList.remove('game-start');
     this.fps = 0;
     this.timer = 0;
     this.beginTime = 0;
@@ -194,7 +202,7 @@ export default class Interfaces {
     const now = performance.now();
     this.timer = now - this.beginTime;
     this.fps++;
-    if(now - this.lastTime >= 1000){
+    if (now - this.lastTime >= 1000) {
       this.fpsSpan.innerHTML = `fps:<strong>${this.fps}</strong>`;
       this.timerSpan.innerHTML = `用时:<strong>${this.formatTime(this.timer)}</strong>`;
       this.fps = 0;
@@ -208,10 +216,10 @@ export default class Interfaces {
     const second = Math.floor(time / 1000);
     const minute = Math.floor(second / 60);
     const hour = Math.floor(minute / 60);
-    return `${hour? `${hour}:` : ''}${minute? `${minute}:` : ''}${second % 60}`;
+    return `${hour ? `${hour}:` : ''}${minute ? `${minute}:` : ''}${second % 60}`;
   }
   finish() {
-    this.model.change('恭喜', '游戏结束');
+    this.model.change('恭喜', '游戏结束<br>用时' + this.formatTime(this.timer), '');
     this.model.open();
   }
 }
