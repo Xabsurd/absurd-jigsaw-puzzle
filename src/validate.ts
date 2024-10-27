@@ -47,12 +47,16 @@ export default class Validate {
     const tile1_y = tile1.y + tile1.parent.y - tile1.offsetBounds.y;
     const tile2_x = tile2.x + tile2.parent.x - tile2.offsetBounds.x;
     const tile2_y = tile2.y + tile2.parent.y - tile2.offsetBounds.y;
-    if (
-      Math.abs(tile1_x - tile2_x) < this.redundancy ||
-      Math.abs(tile1_y - tile2_y) < this.redundancy
-    ) {
-      return true;
-    } else {
+    try {
+      if (
+        Math.abs(tile1_x - tile2_x) < this.redundancy ||
+        Math.abs(tile1_y - tile2_y) < this.redundancy
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch{
       return false;
     }
   }

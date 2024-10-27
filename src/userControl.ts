@@ -105,6 +105,8 @@ export default class UserControl {
     this.minScale = scale / 2;
     // this.mainContainer.x=(this.app.screen.width-this.baseSprite.width*scale)/2;
     // this.mainContainer.y=(this.app.screen.height-this.baseSprite.height*scale)/2;
+    this.mainContainer.x=0;
+    this.mainContainer.y=0;
     console.log(this.app.screen.width, this.baseSprite.height * scale);
   }
 }
