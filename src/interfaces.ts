@@ -1,8 +1,9 @@
 import { Model } from './model';
 import { OptimizationType } from './pieceTools';
 import { GeneratePath } from './svgTools';
-
+import getLocal, { MessageSchema } from './language/local';
 export default class Interfaces {
+  local:MessageSchema | undefined;
   tipButton: HTMLButtonElement;
   columnsSpan: HTMLSpanElement;
   rowsSpan: HTMLSpanElement;
@@ -44,8 +45,10 @@ export default class Interfaces {
     this.fpsSpan = document.getElementById('fps') as HTMLSpanElement;
     this.timerSpan = document.getElementById('timer') as HTMLSpanElement;
     this.setup();
+    
   }
-  setup() {
+  async setup() {
+    this.local= await getLocal();
     this.columnsInput.addEventListener('input', () => {
       this.columnsSpan.innerHTML = this.columnsInput.value;
     });
