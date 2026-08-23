@@ -15,7 +15,7 @@ try {
 }
 
 export default class Game {
-  puzzleTiles = new Map<string, PuzzleTile>();
+  puzzleTiles = new Map<string, Container>();
   app: Application | undefined;
   userControl: UserControl | undefined;
   private factory: PieceFactory | undefined;
@@ -108,8 +108,10 @@ export default class Game {
     this.app.stage.addChild(this.container);
 
     this.userControl = new UserControl(this.app, this.container, this.display.borderColor);
-    this.factory = new PieceFactory(this.display);
-    this.snap = new SnapSystem(this.puzzleTiles, () => this.snapThreshold());
+    this.factory = new PieceFactory(this.display, texture, tileTool);
+    this.snap = new SnapSystem(this.puzzleTiles, () => this.snapThreshold(), (group) => {
+      this.factory?.rebuild(group);
+    });
 
     const total = config.columns * config.rows;
     const yieldEvery = Math.max(1, Math.floor(total / 80));
@@ -121,19 +123,16 @@ export default class Game {
       for (let y = 0; y < config.rows; y++) {
         if (this.isStale(session) || !this.factory) return;
         const path = tileTool.getTilePath(x, y);
-        const puzzle = this.factory.create(texture, path);
+        const puzzle = this.factory.create(path, x, y);
         if (this.isStale(session) || !this.userControl || !this.container) return;
         const target = puzzle.target;
-        const sprite = puzzle.sprite;
-        const bounds = sprite.pathBounds;
+        const bounds = puzzle.sprite.pathBounds;
         const rangeX = Math.max(1, areaW - bounds.width);
         const rangeY = Math.max(1, areaH - bounds.height);
         target.x = Math.random() * rangeX - bounds.x;
         target.y = Math.random() * rangeY - bounds.y;
         this.container.addChild(target);
-        sprite.column = x;
-        sprite.row = y;
-        this.puzzleTiles.set(`${x}-${y}`, sprite);
+        this.puzzleTiles.set(`${x}-${y}`, target);
         done++;
         if (done === 1 || done === total || done % yieldEvery === 0) {
           this.onProgress(done, total);
@@ -181,8 +180,15 @@ export default class Game {
     this.dom.style.backgroundColor = settings.backgroundColor;
     if (this.userControl) this.userControl.borderColor = settings.borderColor;
     if (this.factory) this.factory.display = settings;
-    this.puzzleTiles.forEach((tile) => {
-      tile.setStroke(settings.showStroke, settings.borderColor);
+    const seen = new Set<Container>();
+    this.puzzleTiles.forEach((group) => {
+      if (seen.has(group) || group.destroyed) return;
+      seen.add(group);
+      for (const child of group.children) {
+        if (child instanceof PuzzleTile) {
+          child.setStroke(settings.showStroke, settings.borderColor);
+        }
+      }
     });
   }
 

@@ -1,7 +1,8 @@
-import { Container, GraphicsPath, Rectangle, Texture } from 'pixi.js';
+import { Container, Texture } from 'pixi.js';
 import PuzzleTile, { boundsFromPath } from './PuzzleTile';
-import HitArea from './HitArea';
 import type { DisplaySettings } from '../displaySettings';
+import { getGroupCells, paintGroup } from './puzzleGroup';
+import type { TileTool } from '../svgTools';
 
 export type PieceResult = {
   target: Container;
@@ -9,37 +10,29 @@ export type PieceResult = {
 };
 
 export default class PieceFactory {
-  constructor(public display: DisplaySettings) {}
+  constructor(
+    public display: DisplaySettings,
+    public texture: Texture,
+    public tileTool: TileTool
+  ) {}
 
-  create(texture: Texture, path: string): PieceResult {
-    const tile = new PuzzleTile();
-    tile.pathData = path;
-    tile.pathBounds = boundsFromPath(path);
-    tile.eventMode = 'none';
-    tile.cullable = true;
-    tile.interactiveChildren = false;
-    tile.path(new GraphicsPath(path));
-    tile.fill({
-      texture,
-      textureSpace: 'global'
-    });
-    void tile.bounds;
-    tile.setStroke(this.display.showStroke, this.display.borderColor);
-
+  create(path: string, column: number, row: number): PieceResult {
     const container = new Container();
     container.eventMode = 'none';
     container.interactiveChildren = false;
     container.cullable = true;
     container.cullableChildren = true;
-    container.cullArea = new Rectangle(
-      tile.pathBounds.x,
-      tile.pathBounds.y,
-      tile.pathBounds.width,
-      tile.pathBounds.height
+    paintGroup(
+      container,
+      [{ column, row, pathBounds: boundsFromPath(path) }],
+      this.texture,
+      this.tileTool,
+      this.display
     );
-    container.addChild(tile);
-    container.hitArea = new HitArea(container);
+    return { target: container, sprite: container.children[0] as PuzzleTile };
+  }
 
-    return { target: container, sprite: tile };
+  rebuild(group: Container) {
+    paintGroup(group, getGroupCells(group), this.texture, this.tileTool, this.display);
   }
 }
