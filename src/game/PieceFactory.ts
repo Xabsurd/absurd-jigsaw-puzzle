@@ -1,6 +1,7 @@
-import { Container, GraphicsPath, Texture } from 'pixi.js';
-import PuzzleTile from './PuzzleTile';
+import { Container, GraphicsPath, Renderer, Texture } from 'pixi.js';
+import PuzzleTile, { boundsFromPath, forceBatch } from './PuzzleTile';
 import HitArea from './HitArea';
+import type { DisplaySettings } from '../displaySettings';
 
 export type PieceResult = {
   target: Container;
@@ -8,20 +9,28 @@ export type PieceResult = {
 };
 
 export default class PieceFactory {
-  constructor(public borderColor = '#8bc5ff') {}
+  constructor(
+    public display: DisplaySettings,
+    public renderer: Renderer
+  ) {}
 
   create(texture: Texture, path: string): PieceResult {
     const tile = new PuzzleTile();
+    tile.pathData = path;
+    tile.pathBounds = boundsFromPath(path);
     tile.eventMode = 'none';
     tile.cullable = true;
+    tile.interactiveChildren = false;
     tile.path(new GraphicsPath(path));
     tile.fill({ texture });
-    tile.stroke({ color: this.borderColor, width: 2 });
     void tile.bounds;
+    forceBatch(this.renderer, tile);
+    tile.attachRenderer(this.renderer);
+    tile.setStroke(this.display.showStroke, this.display.borderColor);
 
     const container = new Container();
-    container.eventMode = 'static';
-    container.cursor = 'grab';
+    container.eventMode = 'none';
+    container.interactiveChildren = false;
     container.cullable = true;
     container.addChild(tile);
     container.hitArea = new HitArea(container);
