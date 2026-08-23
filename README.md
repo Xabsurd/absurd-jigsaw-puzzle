@@ -5,8 +5,7 @@
 
 ## Advantages
 1. Supports any number of puzzle pieces
-2. Customizable optimization level to adapt to machines with different performance
-3. Customizable operation logic (work in progress)
+2. Customizable operation logic (work in progress)
 
 ## Getting Started
 
@@ -39,8 +38,7 @@ npm run build
 
 ## 优势
 1. 可以支持任意数量的拼图块
-2. 可自定义优化级别，以适配不同性能的机器
-3. 可自定义操作逻辑`完善中`
+2. 可自定义操作逻辑`完善中`
 
 ## 启动
 
