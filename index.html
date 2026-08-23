@@ -1,33 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.blue.min.css"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="icon" href="./vite.svg" type="image/svg+xml" />
     <title>拼图游戏</title>
-    <script type="module" crossorigin src="./assets/index-CPQr9e8e.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-DbLCszfp.css">
+    <script type="module" crossorigin src="./assets/index-DoC9aXz2.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DQIStDCl.css">
   </head>
 
   <body>
-    <div id="svg-container"></div>
     <div id="app"></div>
     <div id="ui">
       <form>
         <fieldset>
           <label>
             列数:
-            <span id="colmuns-label">20</span>
+            <span id="columns-label">20</span>
             <input
-              id="colmuns"
-              name="colmuns"
-              placeholder="colmuns"
+              id="columns"
+              name="columns"
               type="range"
-              min="0"
-              max="100"
+              min="2"
+              max="80"
               value="20"
               step="1"
             />
@@ -38,24 +33,24 @@
             <input
               id="rows"
               name="rows"
-              placeholder="rows"
               type="range"
-              min="0"
-              max="100"
+              min="2"
+              max="80"
               value="20"
               step="1"
             />
           </label>
+          <p class="piece-count"><span id="piece-count">共 400 块</span></p>
           <fieldset>
             <legend>优化方式:</legend>
             <div>
-              <label for="none" data-tooltip="没有优化,最推荐" class="inline-label">
+              <label for="none" data-tooltip="矢量路径实时绘制，共享原图，加载最快" class="inline-label">
                 <input id="none" type="radio" name="optimization" checked />
                 无
               </label>
               <label
                 for="antialias"
-                data-tooltip="添加抗锯齿.效果不明显,但会占用大量显存"
+                data-tooltip="路径实时绘制，并开启画布抗锯齿"
                 class="inline-label"
               >
                 <input id="antialias" type="radio" name="optimization" />
@@ -63,7 +58,7 @@
               </label>
               <label
                 for="reRender"
-                data-tooltip="添加抗锯齿.将碎片转换成图片再重新渲染,显存占用最小,但载入速度最慢"
+                data-tooltip="路径实时绘制并抗锯齿（不再烘焙成独立纹理）"
                 class="inline-label"
               >
                 <input id="reRender" type="radio" name="optimization" />
@@ -79,23 +74,18 @@
             背景颜色:
             <input id="background-color" name="background-color" type="color" value="#111111" />
           </label>
-          <button type="button" id="upload" style="width: 100%">选择图片</button>
-          <input type="file" id="file-upload" accept="image/*" style="display: none" />
-          <button type="button" id="start" style="width: 100%">开始</button>
-          <legend>重新开始游戏直接F5刷新即可</legend>
+          <button type="button" id="upload">选择图片</button>
+          <input type="file" id="file-upload" accept="image/*" hidden />
+          <button type="button" id="start">开始</button>
+          <small>也可把图片拖到页面中。开始后可用 C 居中，滚轮缩放。</small>
         </fieldset>
       </form>
-      <div class="preview">
-        <img id="preview-image" />
-        <svg id="preview-svg"></svg>
+      <div class="preview" hidden>
+        <img id="preview-image" alt="预览图" />
+        <svg id="preview-svg" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
-      <div class="game-control " >
-        <button
-          id="control-tip"
-          data-tooltip="提示"
-          data-placement="bottom"
-          style="display: inline-block"
-        >
+      <div class="game-control">
+        <button id="control-tip" data-tooltip="操作说明" data-placement="bottom" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
             <path
               fill="currentColor"
@@ -103,7 +93,7 @@
             ></path>
           </svg>
         </button>
-        <button id="control-aim" data-tooltip="居中画布" data-placement="bottom">
+        <button id="control-aim" data-tooltip="居中画布" data-placement="bottom" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
             <path
               fill="currentColor"
@@ -115,7 +105,7 @@
             ></path>
           </svg>
         </button>
-        <button id="control-refresh" data-tooltip="重新开始游戏" data-placement="bottom">
+        <button id="control-refresh" data-tooltip="重新开始" data-placement="bottom" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
             <path
               fill="currentColor"
@@ -123,16 +113,15 @@
             ></path>
           </svg>
         </button>
-
-        
-        <span id="fps">
-          fps:
-          <strong>0</strong>
-        </span>
-        <span id="timer">
-          用时:
-          <strong>0</strong>
-        </span>
+        <span id="progress-stat">进度: <strong>0/0</strong></span>
+        <span id="fps">FPS: <strong>0</strong></span>
+        <span id="timer">用时: <strong>0:00</strong></span>
+      </div>
+      <div id="loading" hidden>
+        <article>
+          <p id="loading-text">正在生成拼图...</p>
+          <progress id="loading-progress" value="0" max="1"></progress>
+        </article>
       </div>
     </div>
   </body>
