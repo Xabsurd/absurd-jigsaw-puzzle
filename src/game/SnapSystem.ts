@@ -1,4 +1,4 @@
-import { Container } from 'pixi.js';
+import { Container, Rectangle } from 'pixi.js';
 import PuzzleTile from './PuzzleTile';
 
 const NEIGHBORS: Array<[number, number]> = [
@@ -30,9 +30,10 @@ export default class SnapSystem {
     for (const tile of group.children as PuzzleTile[]) {
       for (const [dx, dy] of NEIGHBORS) {
         const neighbor = this.puzzleTiles.get(`${tile.column + dx}-${tile.row + dy}`);
-        if (!neighbor || neighbor.parent === group || neighbor.parent.destroyed) continue;
-        if (this.overlapping(group, neighbor.parent, threshold)) {
-          return neighbor.parent;
+        const parent = neighbor?.parent;
+        if (!neighbor || !parent || parent === group || parent.destroyed) continue;
+        if (this.overlapping(group, parent, threshold)) {
+          return parent;
         }
       }
     }
@@ -54,6 +55,24 @@ export default class SnapSystem {
       dst.addChild(child);
     }
     src.destroy({ children: false });
+    updateGroupCullArea(dst);
     return dst;
   }
+}
+
+export function updateGroupCullArea(group: Container) {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const child of group.children) {
+    if (!(child instanceof PuzzleTile)) continue;
+    const bounds = child.pathBounds;
+    minX = Math.min(minX, bounds.x);
+    minY = Math.min(minY, bounds.y);
+    maxX = Math.max(maxX, bounds.x + bounds.width);
+    maxY = Math.max(maxY, bounds.y + bounds.height);
+  }
+  if (!Number.isFinite(minX)) return;
+  group.cullArea = new Rectangle(minX, minY, maxX - minX, maxY - minY);
 }

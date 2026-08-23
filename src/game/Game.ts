@@ -1,4 +1,4 @@
-import { Application, Container, Texture } from 'pixi.js';
+import { Application, Container, CullerPlugin, Texture, extensions } from 'pixi.js';
 import { GeneratePath, TileTool } from '../svgTools';
 import PieceFactory from './PieceFactory';
 import UserControl from '../input/UserControl';
@@ -7,6 +7,12 @@ import SnapSystem from './SnapSystem';
 import { GameConfig } from '../types';
 import type { DisplaySettings } from '../displaySettings';
 import { loadPuzzleImage, yieldFrame } from '../assets';
+
+try {
+  extensions.add(CullerPlugin);
+} catch {
+  // already registered
+}
 
 export default class Game {
   puzzleTiles = new Map<string, PuzzleTile>();
@@ -64,7 +70,8 @@ export default class Game {
       preference: 'webgpu',
       antialias: true,
       bezierSmoothness: 0,
-      powerPreference: 'high-performance'
+      powerPreference: 'high-performance',
+      culler: { updateTransform: true }
     });
     this.app.canvas.style.display = 'block';
     this.app.canvas.style.touchAction = 'none';
@@ -101,7 +108,7 @@ export default class Game {
     this.app.stage.addChild(this.container);
 
     this.userControl = new UserControl(this.app, this.container, this.display.borderColor);
-    this.factory = new PieceFactory(this.display, this.app.renderer);
+    this.factory = new PieceFactory(this.display);
     this.snap = new SnapSystem(this.puzzleTiles, () => this.snapThreshold());
 
     const total = config.columns * config.rows;
@@ -175,7 +182,6 @@ export default class Game {
     if (this.userControl) this.userControl.borderColor = settings.borderColor;
     if (this.factory) this.factory.display = settings;
     this.puzzleTiles.forEach((tile) => {
-      if (this.app) tile.attachRenderer(this.app.renderer);
       tile.setStroke(settings.showStroke, settings.borderColor);
     });
   }

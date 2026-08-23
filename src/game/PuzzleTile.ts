@@ -1,4 +1,4 @@
-import { Graphics, GraphicsPath, Renderer } from 'pixi.js';
+import { Graphics, GraphicsPath } from 'pixi.js';
 
 export type PathBounds = {
   x: number;
@@ -42,7 +42,6 @@ export default class PuzzleTile extends Graphics {
   public pathData = '';
   public pathBounds: PathBounds = { x: 0, y: 0, width: 1, height: 1 };
   private strokeGfx: Graphics | null = null;
-  private renderer: Renderer | undefined;
 
   containsPathBounds(x: number, y: number, pad = 0) {
     const bounds = this.pathBounds;
@@ -52,10 +51,6 @@ export default class PuzzleTile extends Graphics {
       x <= bounds.x + bounds.width + pad &&
       y <= bounds.y + bounds.height + pad
     );
-  }
-
-  attachRenderer(renderer: Renderer) {
-    this.renderer = renderer;
   }
 
   setStroke(enabled: boolean, color: string) {
@@ -81,12 +76,5 @@ export default class PuzzleTile extends Graphics {
       cap: 'butt',
       miterLimit: 2
     });
-    forceBatch(this.renderer, this.strokeGfx);
   }
-}
-
-export function forceBatch(renderer: Renderer | undefined, graphics: Graphics) {
-  if (!renderer) return;
-  const gpu = renderer.graphicsContext.updateGpuContext(graphics.context);
-  gpu.isBatchable = true;
 }

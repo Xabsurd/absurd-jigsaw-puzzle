@@ -1,5 +1,5 @@
-import { Container, GraphicsPath, Renderer, Texture } from 'pixi.js';
-import PuzzleTile, { boundsFromPath, forceBatch } from './PuzzleTile';
+import { Container, GraphicsPath, Rectangle, Texture } from 'pixi.js';
+import PuzzleTile, { boundsFromPath } from './PuzzleTile';
 import HitArea from './HitArea';
 import type { DisplaySettings } from '../displaySettings';
 
@@ -9,10 +9,7 @@ export type PieceResult = {
 };
 
 export default class PieceFactory {
-  constructor(
-    public display: DisplaySettings,
-    public renderer: Renderer
-  ) {}
+  constructor(public display: DisplaySettings) {}
 
   create(texture: Texture, path: string): PieceResult {
     const tile = new PuzzleTile();
@@ -22,16 +19,24 @@ export default class PieceFactory {
     tile.cullable = true;
     tile.interactiveChildren = false;
     tile.path(new GraphicsPath(path));
-    tile.fill({ texture });
+    tile.fill({
+      texture,
+      textureSpace: 'global'
+    });
     void tile.bounds;
-    forceBatch(this.renderer, tile);
-    tile.attachRenderer(this.renderer);
     tile.setStroke(this.display.showStroke, this.display.borderColor);
 
     const container = new Container();
     container.eventMode = 'none';
     container.interactiveChildren = false;
     container.cullable = true;
+    container.cullableChildren = true;
+    container.cullArea = new Rectangle(
+      tile.pathBounds.x,
+      tile.pathBounds.y,
+      tile.pathBounds.width,
+      tile.pathBounds.height
+    );
     container.addChild(tile);
     container.hitArea = new HitArea(container);
 
