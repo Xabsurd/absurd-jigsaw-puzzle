@@ -1,28 +1,35 @@
-import Interfaces from './interfaces';
-import Game from './game';
+import '@picocss/pico/css/pico.blue.min.css';
 import './style.css';
-// const columns = 50,
-// const baseImageSrc = './95494859_p0.jpg';
-//   rows = 50;
+import GameUI from './ui/GameUI';
+import Game from './game/Game';
+
 const appDiv = document.getElementById('app') as HTMLDivElement;
-// const svgContainer = document.getElementById('svg-container') as HTMLDivElement;
-// init();
-const interfaces = new Interfaces();
-let game: Game;
-interfaces.init().then(async (data) => {
-  game = new Game(appDiv, data.src, data.rows, data.columns, data.optimization, data.borderColor);
-  await game.init();
-  game.start();
-  game.finishCallback = () => {
-    interfaces.finish();
-  };
-});
-interfaces.addControlEventListener('center', 'click', () => {
-  game.toCenter();
-});
-interfaces.addControlEventListener('restart', 'click', async () => {
-  game.destroy();
-  const data = await interfaces.restart();
-  // await game.init();
-  game.restart(data.src, data.rows, data.columns, data.optimization, data.borderColor);
-});
+const ui = new GameUI();
+const game = new Game(appDiv);
+
+ui.onStart = async (config) => {
+  game.onProgress = (done, total) => ui.setLoading(done, total);
+  game.onFinish = () => ui.finish();
+  game.onStats = (merged, total, groups) => ui.setProgress(merged, total, groups);
+  game.onFps = (fps) => ui.setFps(fps);
+  ui.showLoading();
+  try {
+    await game.play(config);
+    ui.hideLoading();
+    ui.startTimer();
+  } catch (error) {
+    await game.dispose();
+    ui.hideLoading();
+    ui.showMenu();
+    ui.alert('无法开始', error instanceof Error ? error.message : String(error));
+  }
+};
+
+ui.onCenter = () => game.toCenter();
+
+ui.onRestart = async () => {
+  if (!(await ui.confirmRestart())) return;
+  ui.stopTimer();
+  await game.dispose();
+  ui.showMenu();
+};
