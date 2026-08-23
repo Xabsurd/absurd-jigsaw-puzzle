@@ -85,16 +85,6 @@ body,
   pointer-events: none;
 }
 
-#ui .inline-label {
-  display: inline-block;
-  margin-right: 0.5rem;
-  border: none;
-}
-
-#ui .inline-label input {
-  margin-right: 0;
-}
-
 #ui .game-control {
   position: absolute;
   left: 0.5rem;

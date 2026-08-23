@@ -33,7 +33,7 @@ export default class Game {
     this.disposed = false;
     this.objectUrl = config.src;
     this.finished = false;
-    await this.initRenderer(config.optimization !== 'none');
+    await this.initRenderer();
     if (this.isStale(session)) return;
     try {
       await this.startSession(config, session);
@@ -43,7 +43,7 @@ export default class Game {
     }
   }
 
-  private async initRenderer(antialias: boolean) {
+  private async initRenderer() {
     this.app = new Application();
     await this.app.init({
       resizeTo: this.dom,
@@ -51,7 +51,7 @@ export default class Game {
       resolution: Math.min(window.devicePixelRatio || 1, 2),
       autoDensity: true,
       preference: 'webgpu',
-      antialias,
+      antialias: true,
       powerPreference: 'high-performance'
     });
     this.app.canvas.style.display = 'block';

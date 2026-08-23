@@ -1,6 +1,6 @@
 import Modal from './Modal';
 import { GeneratePath } from '../svgTools';
-import { GameConfig, OptimizationType } from '../types';
+import { GameConfig } from '../types';
 import { debounce } from '../assets';
 
 function must<T extends HTMLElement>(id: string) {
@@ -20,9 +20,6 @@ export default class GameUI {
   private readonly columnsInput = must<HTMLInputElement>('columns');
   private readonly rowsInput = must<HTMLInputElement>('rows');
   private readonly pieceCount = must<HTMLSpanElement>('piece-count');
-  private readonly optimizationInput = document.getElementsByName(
-    'optimization'
-  ) as NodeListOf<HTMLInputElement>;
   private readonly uploadButton = must<HTMLButtonElement>('upload');
   private readonly startButton = must<HTMLButtonElement>('start');
   private readonly fileInput = must<HTMLInputElement>('file-upload');
@@ -124,16 +121,8 @@ export default class GameUI {
       src,
       rows,
       columns,
-      optimization: this.selectedOptimization(),
       borderColor: this.borderColor.value
     });
-  }
-
-  private selectedOptimization(): OptimizationType {
-    for (const input of this.optimizationInput) {
-      if (input.checked) return input.id as OptimizationType;
-    }
-    return 'none';
   }
 
   private syncLabels() {

@@ -39,31 +39,6 @@
             />
           </label>
           <p class="piece-count"><span id="piece-count">共 400 块</span></p>
-          <fieldset>
-            <legend>优化方式:</legend>
-            <div>
-              <label for="none" data-tooltip="矢量路径实时绘制，共享原图，加载最快" class="inline-label">
-                <input id="none" type="radio" name="optimization" checked />
-                无
-              </label>
-              <label
-                for="antialias"
-                data-tooltip="路径实时绘制，并开启画布抗锯齿"
-                class="inline-label"
-              >
-                <input id="antialias" type="radio" name="optimization" />
-                抗锯齿
-              </label>
-              <label
-                for="reRender"
-                data-tooltip="路径实时绘制并抗锯齿（不再烘焙成独立纹理）"
-                class="inline-label"
-              >
-                <input id="reRender" type="radio" name="optimization" />
-                重渲染
-              </label>
-            </div>
-          </fieldset>
           <label>
             边框颜色:
             <input id="border-color" name="border-color" type="color" value="#8bc5ff" />
