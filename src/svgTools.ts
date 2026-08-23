@@ -349,94 +349,65 @@ export class TileTool {
       height: number;
     }
   ) {}
+  get columns() {
+    return this.data.dv.lines.length + 1;
+  }
+
+  get rows() {
+    return this.data.dh.lines.length + 1;
+  }
+
   getTilePath(x: number, y: number) {
-    if (
-      x < 0 ||
-      y < 0 ||
-      x >= this.data.dv.lines.length + 1 ||
-      y >= this.data.dh.lines.length + 1
-    ) {
+    const cols = this.columns;
+    const rows = this.rows;
+    if (x < 0 || y < 0 || x >= cols || y >= rows) {
       throw new Error('out of range');
     }
-    let line1;
-    let line2;
-    let line3;
-    let line4;
-    if (x > 0) {
-      line1 = this.formatDV(x - 1, y);
-    } else {
-      line1 = {
-        start: y > 0 ? this.data.dh.lines[y - 1].start : 'M 0 0',
-        path:
-          y < this.data.dh.lines.length
-            ? this.data.dh.lines[y].start.replace('M ', 'L ')
-            : `L 0 ${this.data.height}`
-      };
-    }
-    if (x < this.data.dv.lines.length) {
-      line3 = this.reverseDV(x, y);
-    } else {
-      const prev_dh_path = this.data.dh.lines[y - 1]?.paths[x].trim().split(' ') || [
-        this.data.width,
-        '0'
-      ];
-      const dh_path = this.data.dh.lines[x]?.paths[y].trim().split(' ') || [this.data.width, '0'];
-      line3 = {
-        start:
-          x < this.data.dh.lines.length
-            ? 'M ' + dh_path[dh_path.length - 2] + ' ' + dh_path[dh_path.length - 1]
-            : `M ${this.data.width} ${this.data.height}`,
-        path:
-          x > 0
-            ? 'L' +
-              prev_dh_path[prev_dh_path.length - 2] +
-              ' ' +
-              prev_dh_path[prev_dh_path.length - 1]
-            : `L ${this.data.width} 0`
-      };
-    }
-    if (y > 0) {
-      line4 = this.reverseDH(x, y - 1);
-    } else {
-      line2 = {
-        start: y > 0 ? this.data.dv.lines[y - 1].start : 'M 0 0',
-        path:
-          y < this.data.dv.lines.length
-            ? this.data.dv.lines[y].start.replace('M ', 'L ')
-            : `L ${this.data.width} 0`
-      };
-      line4 = {
-        start: y > 0 ? this.data.dv.lines[y - 1].start : 'M 0 0',
-        path:
-          y < this.data.dv.lines.length
-            ? x > 0
-              ? this.data.dv.lines[x - 1].start.replace('M ', 'L ')
-              : 'L 0 0'
-            : `L ${this.data.width} 0`
-      };
-    }
-    if (y < this.data.dh.lines.length) {
-      line2 = this.formatDH(x, y);
-    } else {
-      line2 = {
-        start: y > 0 ? this.data.dv.lines[y - 1].start : `M 0 ${this.data.height}`,
-        path: line3.start.replace('M ', 'L ')
-      };
-    }
+
+    const line1 = x > 0 ? this.formatDV(x - 1, y) : this.leftBorder(y);
+    const line3 = x < cols - 1 ? this.reverseDV(x, y) : this.rightBorder(x, y);
+    const line2 =
+      y < rows - 1 ? this.formatDH(x, y) : { start: '', path: line3.start.replace('M ', 'L ') };
+    const line4 = y > 0 ? this.reverseDH(x, y - 1) : this.topBorder(x);
+
     return `${line1.start} ${line1.path} ${line2.path} ${line3.path} ${line4.path} Z`;
-    // const rectPath =
-    //     "M " +
-    //     line1.start.join() +
-    //     " " +
-    //     line1.path +
-    //     " " +
-    //     line2.path +
-    //     " " +
-    //     line3.path +
-    //     " " +
-    //     line4.path +
-    //     "Z";
-    //   return rectPath;
+  }
+
+  private leftBorder(y: number) {
+    return {
+      start: y > 0 ? this.data.dh.lines[y - 1].start : 'M 0 0',
+      path:
+        y < this.data.dh.lines.length
+          ? this.data.dh.lines[y].start.replace('M ', 'L ')
+          : `L 0 ${this.data.height}`
+    };
+  }
+
+  private rightBorder(x: number, y: number) {
+    const top = this.rightJoin(x, y);
+    const bottom = this.rightJoin(x, y + 1);
+    return {
+      start: `M ${bottom.x} ${bottom.y}`,
+      path: `L ${top.x} ${top.y}`
+    };
+  }
+
+  private topBorder(x: number) {
+    return {
+      start: 'M 0 0',
+      path: x > 0 ? this.data.dv.lines[x - 1].start.replace('M ', 'L ') : 'L 0 0'
+    };
+  }
+
+  private rightJoin(x: number, joinY: number) {
+    if (joinY <= 0) return { x: String(this.data.width), y: '0' };
+    if (joinY >= this.rows) return { x: String(this.data.width), y: String(this.data.height) };
+    return this.lastPoint(this.data.dh.lines[joinY - 1].paths[x]);
+  }
+
+  private lastPoint(path: string) {
+    const parts = path.trim().split(/\s+/);
+    return { x: parts[parts.length - 2], y: parts[parts.length - 1] };
   }
   formatDV(x: number, y: number) {
     const dv = this.data.dv.lines[x].paths[y];
@@ -467,7 +438,7 @@ export class TileTool {
       };
     } else {
       return {
-        start: this.data.dh.lines[x].start,
+        start: this.data.dh.lines[y].start,
         path: dh
       };
     }
@@ -507,7 +478,7 @@ export class TileTool {
     for (let i = dh_str.length - 2; i >= 0; i -= 2) {
       reserve_dh_str.push(dh_str[i], dh_str[i + 1]);
     }
-    const start = [reserve_dh_str[0], dh_str[1]];
+    const start = [reserve_dh_str[0], reserve_dh_str[1]];
     const c1 = ' C ' + reserve_dh_str.slice(2, 8).join(' ');
     const c2 = ' C ' + reserve_dh_str.slice(8, 14).join(' ');
     const c3 =
@@ -518,7 +489,7 @@ export class TileTool {
       ' ' +
       prev_dh_str[prev_dh_str.length - 1];
     return {
-      start: 'M ' + start,
+      start: 'M ' + start.join(' '),
       path: c1 + c2 + c3
     };
   }

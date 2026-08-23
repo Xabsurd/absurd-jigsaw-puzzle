@@ -9,11 +9,14 @@ export default class HitArea {
   contains(x: number, y: number): boolean {
     scratch.set(x, y);
     const children = this.host.children;
+    let boundsHit = false;
     for (let i = 0, n = children.length; i < n; i++) {
-      if ((children[i] as PuzzleTile).containsPoint(scratch)) {
-        return true;
-      }
+      const tile = children[i];
+      if (!(tile instanceof PuzzleTile)) continue;
+      if (!tile.containsPathBounds(x, y, 2)) continue;
+      if (tile.containsPoint(scratch)) return true;
+      boundsHit = true;
     }
-    return false;
+    return boundsHit;
   }
 }

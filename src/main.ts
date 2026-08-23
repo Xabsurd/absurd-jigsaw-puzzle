@@ -6,6 +6,7 @@ import Game from './game/Game';
 const appDiv = document.getElementById('app') as HTMLDivElement;
 const ui = new GameUI();
 const game = new Game(appDiv);
+appDiv.style.backgroundColor = ui.settings.backgroundColor;
 
 ui.onStart = async (config) => {
   game.onProgress = (done, total) => ui.setLoading(done, total);
@@ -32,4 +33,9 @@ ui.onRestart = async () => {
   ui.stopTimer();
   await game.dispose();
   ui.showMenu();
+};
+
+ui.onDisplayChange = (settings) => {
+  appDiv.style.backgroundColor = settings.backgroundColor;
+  game.applyDisplay(settings);
 };

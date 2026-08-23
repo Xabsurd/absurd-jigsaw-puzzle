@@ -5,6 +5,7 @@ import UserControl from '../input/UserControl';
 import PuzzleTile from './PuzzleTile';
 import SnapSystem from './SnapSystem';
 import { GameConfig } from '../types';
+import type { DisplaySettings } from '../displaySettings';
 import { loadPuzzleImage, yieldFrame } from '../assets';
 
 export default class Game {
@@ -15,6 +16,11 @@ export default class Game {
   private container: Container | undefined;
   private snap: SnapSystem | undefined;
   private objectUrl: string | undefined;
+  private display: DisplaySettings = {
+    showStroke: true,
+    borderColor: '#8bc5ff',
+    backgroundColor: '#111111'
+  };
   private fpsHook: (() => void) | undefined;
   private session = 0;
   private disposed = true;
@@ -32,6 +38,11 @@ export default class Game {
     const session = this.session;
     this.disposed = false;
     this.objectUrl = config.src;
+    this.display = {
+      showStroke: config.showStroke,
+      borderColor: config.borderColor,
+      backgroundColor: config.backgroundColor
+    };
     this.finished = false;
     await this.initRenderer();
     if (this.isStale(session)) return;
@@ -52,6 +63,7 @@ export default class Game {
       autoDensity: true,
       preference: 'webgpu',
       antialias: true,
+      bezierSmoothness: 0,
       powerPreference: 'high-performance'
     });
     this.app.canvas.style.display = 'block';
@@ -82,15 +94,18 @@ export default class Game {
     const tileTool = new TileTool(lines);
 
     this.container = new Container();
-    this.container.cullable = true;
+    this.container.eventMode = 'none';
+    this.container.interactiveChildren = false;
+    this.container.cullable = false;
+    this.container.cullableChildren = true;
     this.app.stage.addChild(this.container);
 
-    this.userControl = new UserControl(this.app, this.container);
-    this.factory = new PieceFactory(config.borderColor);
+    this.userControl = new UserControl(this.app, this.container, this.display.borderColor);
+    this.factory = new PieceFactory(this.display, this.app.renderer);
     this.snap = new SnapSystem(this.puzzleTiles, () => this.snapThreshold());
 
     const total = config.columns * config.rows;
-    const yieldEvery = Math.max(1, Math.floor(total / 40));
+    const yieldEvery = Math.max(1, Math.floor(total / 80));
     let done = 0;
     const areaW = width * 2;
     const areaH = height * 2;
@@ -103,11 +118,12 @@ export default class Game {
         if (this.isStale(session) || !this.userControl || !this.container) return;
         const target = puzzle.target;
         const sprite = puzzle.sprite;
-        const bounds = sprite.bounds;
-        target.x = Math.random() * (areaW - bounds.width) - bounds.x;
-        target.y = Math.random() * (areaH - bounds.height) - bounds.y;
+        const bounds = sprite.pathBounds;
+        const rangeX = Math.max(1, areaW - bounds.width);
+        const rangeY = Math.max(1, areaH - bounds.height);
+        target.x = Math.random() * rangeX - bounds.x;
+        target.y = Math.random() * rangeY - bounds.y;
         this.container.addChild(target);
-        this.userControl.handle(target);
         sprite.column = x;
         sprite.row = y;
         this.puzzleTiles.set(`${x}-${y}`, sprite);
@@ -151,6 +167,17 @@ export default class Game {
 
   toCenter() {
     this.userControl?.fitToView();
+  }
+
+  applyDisplay(settings: DisplaySettings) {
+    this.display = settings;
+    this.dom.style.backgroundColor = settings.backgroundColor;
+    if (this.userControl) this.userControl.borderColor = settings.borderColor;
+    if (this.factory) this.factory.display = settings;
+    this.puzzleTiles.forEach((tile) => {
+      if (this.app) tile.attachRenderer(this.app.renderer);
+      tile.setStroke(settings.showStroke, settings.borderColor);
+    });
   }
 
   private isStale(session: number) {

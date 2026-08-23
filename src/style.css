@@ -127,7 +127,8 @@ body,
   flex-wrap: wrap;
 }
 
-#ui #control-tip {
+#ui #control-tip,
+#ui #control-settings {
   display: inline-flex;
 }
 
@@ -157,6 +158,10 @@ body,
 #loading article {
   width: min(420px, calc(100% - 2rem));
   margin: 0;
+}
+
+#settings-dialog article {
+  max-width: 360px;
 }
 
 dialog.modal-is-opening {

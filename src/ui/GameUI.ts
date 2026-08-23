@@ -2,6 +2,11 @@ import Modal from './Modal';
 import { GeneratePath } from '../svgTools';
 import { GameConfig } from '../types';
 import { debounce } from '../assets';
+import {
+  DisplaySettings,
+  loadDisplaySettings,
+  saveDisplaySettings
+} from '../displaySettings';
 
 function must<T extends HTMLElement>(id: string) {
   const node = document.getElementById(id);
@@ -25,8 +30,12 @@ export default class GameUI {
   private readonly fileInput = must<HTMLInputElement>('file-upload');
   private readonly previewImage = must<HTMLImageElement>('preview-image');
   private readonly previewSvg = must<HTMLElement>('preview-svg');
-  private readonly borderColor = must<HTMLInputElement>('border-color');
-  private readonly backgroundColor = must<HTMLInputElement>('background-color');
+  private readonly settingsButton = must<HTMLButtonElement>('control-settings');
+  private readonly settingsDialog = must<HTMLDialogElement>('settings-dialog');
+  private readonly settingsClose = must<HTMLButtonElement>('settings-close');
+  private readonly strokeToggle = must<HTMLInputElement>('setting-stroke');
+  private readonly borderColor = must<HTMLInputElement>('setting-border-color');
+  private readonly backgroundColor = must<HTMLInputElement>('setting-bg-color');
   private readonly tipButton = must<HTMLButtonElement>('control-tip');
   private readonly centerButton = must<HTMLButtonElement>('control-aim');
   private readonly restartButton = must<HTMLButtonElement>('control-refresh');
@@ -43,6 +52,8 @@ export default class GameUI {
   onStart: (config: GameConfig) => void = () => {};
   onCenter: () => void = () => {};
   onRestart: () => void = () => {};
+  onDisplayChange: (settings: DisplaySettings) => void = () => {};
+  settings: DisplaySettings = loadDisplaySettings();
 
   constructor() {
     this.setup();
@@ -51,6 +62,8 @@ export default class GameUI {
   private setup() {
     this.syncLabels();
     this.startButton.disabled = true;
+    this.syncSettingsFields();
+    this.appDiv.style.backgroundColor = this.settings.backgroundColor;
 
     const previewSoon = debounce(() => this.renderPreview(), 140);
     this.columnsInput.addEventListener('input', () => {
@@ -61,15 +74,22 @@ export default class GameUI {
       this.syncLabels();
       previewSoon();
     });
-    this.borderColor.addEventListener('input', previewSoon);
-    this.backgroundColor.addEventListener('input', () => {
-      this.appDiv.style.backgroundColor = this.backgroundColor.value;
+    this.strokeToggle.addEventListener('change', () => this.commitSettings());
+    this.borderColor.addEventListener('input', () => {
+      this.commitSettings();
+      previewSoon();
     });
+    this.backgroundColor.addEventListener('input', () => this.commitSettings());
 
     this.uploadButton.addEventListener('click', () => this.fileInput.click());
     this.fileInput.addEventListener('change', () => this.onFileChosen());
     this.startButton.addEventListener('click', () => this.submit());
     this.tipButton.addEventListener('click', () => this.showHelp());
+    this.settingsButton.addEventListener('click', () => this.openSettings());
+    this.settingsClose.addEventListener('click', () => this.closeSettings());
+    this.settingsDialog.addEventListener('click', (event) => {
+      if (event.target === this.settingsDialog) this.closeSettings();
+    });
     this.centerButton.addEventListener('click', () => this.onCenter());
     this.restartButton.addEventListener('click', () => this.onRestart());
 
@@ -121,8 +141,34 @@ export default class GameUI {
       src,
       rows,
       columns,
-      borderColor: this.borderColor.value
+      ...this.settings
     });
+  }
+
+  private syncSettingsFields() {
+    this.strokeToggle.checked = this.settings.showStroke;
+    this.borderColor.value = this.settings.borderColor;
+    this.backgroundColor.value = this.settings.backgroundColor;
+  }
+
+  private commitSettings() {
+    this.settings = {
+      showStroke: this.strokeToggle.checked,
+      borderColor: this.borderColor.value,
+      backgroundColor: this.backgroundColor.value
+    };
+    saveDisplaySettings(this.settings);
+    this.appDiv.style.backgroundColor = this.settings.backgroundColor;
+    this.onDisplayChange(this.settings);
+  }
+
+  private openSettings() {
+    this.syncSettingsFields();
+    if (!this.settingsDialog.open) this.settingsDialog.showModal();
+  }
+
+  private closeSettings() {
+    if (this.settingsDialog.open) this.settingsDialog.close();
   }
 
   private syncLabels() {
