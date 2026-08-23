@@ -357,8 +357,8 @@ export class TileTool {
     return this.data.dh.lines.length + 1;
   }
 
-  getGroupPath(cells: { x: number; y: number }[]) {
-    if (cells.length === 1) return this.getTilePath(cells[0].x, cells[0].y);
+  getGroupLoops(cells: { x: number; y: number }[]) {
+    if (cells.length === 1) return [this.getTilePath(cells[0].x, cells[0].y)];
     const inGroup = new Set(cells.map((cell) => `${cell.x}-${cell.y}`));
     const has = (x: number, y: number) => inGroup.has(`${x}-${y}`);
     const edges: { start: string; path: string }[] = [];
@@ -366,6 +366,10 @@ export class TileTool {
       edges.push(...this.cellBoundaryEdges(cell.x, cell.y, has));
     }
     return stitchEdges(edges);
+  }
+
+  getGroupPath(cells: { x: number; y: number }[]) {
+    return this.getGroupLoops(cells).join(' ');
   }
 
   getTilePath(x: number, y: number) {
@@ -560,7 +564,7 @@ function pointKey(x: string, y: string) {
 }
 
 function stitchEdges(edges: { start: string; path: string }[]) {
-  if (edges.length === 0) return 'M 0 0 Z';
+  if (edges.length === 0) return ['M 0 0 Z'];
   const unused = new Set(edges);
   const byStart = new Map<string, { start: string; path: string }[]>();
   for (const edge of edges) {
@@ -571,32 +575,46 @@ function stitchEdges(edges: { start: string; path: string }[]) {
     else byStart.set(key, [edge]);
   }
 
-  const loops: string[] = [];
-  const takeFrom = (key: string) => {
-    const list = byStart.get(key);
-    if (!list) return null;
-    while (list.length) {
-      const edge = list.pop()!;
-      if (unused.has(edge)) {
-        unused.delete(edge);
-        return edge;
+  const takeFrom = (x: string, y: string) => {
+    const list = byStart.get(pointKey(x, y));
+    if (list) {
+      while (list.length) {
+        const edge = list.pop()!;
+        if (unused.has(edge)) {
+          unused.delete(edge);
+          return edge;
+        }
       }
     }
-    return null;
+    let best: { start: string; path: string } | null = null;
+    let bestDist = 0.05;
+    const cx = Number(x);
+    const cy = Number(y);
+    for (const edge of unused) {
+      const start = segStart(edge);
+      const dist = Math.hypot(Number(start.x) - cx, Number(start.y) - cy);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = edge;
+      }
+    }
+    if (best) unused.delete(best);
+    return best;
   };
 
+  const loops: string[] = [];
   while (unused.size) {
     const first = unused.values().next().value as { start: string; path: string };
     unused.delete(first);
     let current = segEnd(first);
     let d = `${first.start} ${first.path}`;
     for (let i = 0; i < edges.length; i++) {
-      const next = takeFrom(pointKey(current.x, current.y));
+      const next = takeFrom(current.x, current.y);
       if (!next) break;
       d += ` ${next.path}`;
       current = segEnd(next);
     }
     loops.push(`${d} Z`);
   }
-  return loops.join(' ');
+  return loops;
 }

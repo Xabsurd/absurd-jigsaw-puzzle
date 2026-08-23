@@ -145,25 +145,21 @@ export default class UserControl {
   private pick(globalX: number, globalY: number): Container | null {
     const local = this.mainContainer.toLocal({ x: globalX, y: globalY }, undefined, this.pickLocal);
     const children = this.mainContainer.children;
-    let fallback: Container | null = null;
     for (let i = children.length - 1; i >= 0; i--) {
       const group = children[i];
       const x = local.x - group.x;
       const y = local.y - group.y;
-      let inBounds = false;
+      const hit = group.hitArea;
+      if (hit instanceof HitArea) {
+        if (hit.contains(x, y)) return group;
+        continue;
+      }
       for (const child of group.children) {
         if (!(child instanceof PuzzleTile)) continue;
-        if (child.containsPathBounds(x, y, 2)) {
-          inBounds = true;
-          break;
-        }
+        if (child.containsPathBounds(x, y, 2)) return group;
       }
-      if (!inBounds) continue;
-      const hit = group.hitArea;
-      if (hit instanceof HitArea && hit.contains(x, y)) return group;
-      if (!fallback) fallback = group;
     }
-    return fallback;
+    return null;
   }
 
   private showOutline(group: Container) {
